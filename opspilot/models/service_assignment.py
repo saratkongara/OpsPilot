@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field, field_validator
 from typing import List, Optional
-from opspilot.models.enums import ServiceType
+from opspilot.models.enums import ServiceType, EquipmentType
 from datetime import datetime
 
 class ServiceAssignment(BaseModel):
@@ -8,7 +8,7 @@ class ServiceAssignment(BaseModel):
     service_id: int   # Id of the service to be assigned
     priority: float   # Combined priority for this specific service assignment (flight_priority.service_priority). First flight priority followed by service priority
     staff_count: int  # Number of staff required for this service assignment
-    location_id: int  # Location where the service will be performed
+    location_id: Optional[int]  # Location where the service will be performed
 
     # Optional fields only for flight-related services
     flight_number: Optional[str] = None  # Flight number (e.g., "AA123")
@@ -18,9 +18,13 @@ class ServiceAssignment(BaseModel):
     start_time: datetime
     end_time: datetime
 
-    service_type: ServiceType  # Defines if the service is single, multi-task, or fixed
+    service_type: ServiceType  # Defines if the service is single, multi-task, fixed or equipment
     multi_task_limit: Optional[int] = None  # Limit for cross-utilizing staff in multi-task services
     exclude_services: List[int] = Field(default_factory=list)  # Services that cannot be multi-tasked with this assignment
+
+    needs_equipment: bool = False  # Indicates if the service requires equipment
+    equipment_type: Optional[EquipmentType] # Type of equipment required for the service
+    equipment_id: Optional[int] = None  # Id of the equipment to be used (if any)
 
     @field_validator('multi_task_limit', always=True)
     def validate_multi_task_limit(cls, value, values):
