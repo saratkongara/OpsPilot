@@ -1,6 +1,6 @@
 from pydantic import BaseModel
-from datetime import time
+from datetime import datetime
 
 class Shift(BaseModel):
-    start: time
-    end: time
+    start_time: datetime
+    end_time: datetime

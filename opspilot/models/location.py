@@ -7,7 +7,7 @@ class Location(BaseModel):
     name: str
     location_type: LocationType
     parent: Optional['Location'] = None   # Reference to parent (optional)
-    children: List['Location'] = []        # Sub-locations (e.g., gates within a zone)
+    children: List['Location'] = []       # Sub-locations (e.g., gates within a zone)
     
     def add_child(self, location: 'Location') -> None:
         """Add a sub-location to this location."""

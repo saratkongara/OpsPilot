@@ -1,10 +1,5 @@
 from enum import Enum
 
-class ServiceType(str, Enum):
-    MULTI_TASK = "M"
-    SINGLE = "S"
-    FIXED = "F"
-
 class CertificationRequirement(str, Enum):
     ALL = "All"
     ANY = "Any"
@@ -16,3 +11,10 @@ class LocationType(str, Enum):
     ZONE = "Zone"
     AREA = "Area"
     TERMINAL = "Terminal"
+    
+class ServiceType(str, Enum):
+    MULTI_TASK = "M"
+    SINGLE = "S"
+    FIXED = "F"
+
+
