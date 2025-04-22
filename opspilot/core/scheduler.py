@@ -164,7 +164,7 @@ class Scheduler:
 
         self.create_assignment_variables()
         self.add_certification_constraints()  # Start with just certifications
-        # self.add_staff_count_constraints()  # Will add later
+        self.add_staff_count_constraints()  # Will add later
         self.set_objective()
         
         status = self.solver.Solve(self.model)
@@ -182,7 +182,7 @@ class Scheduler:
         if self.solution_status in (SchedulerResult.OPTIMAL, SchedulerResult.FEASIBLE):
             self._store_solution()
             self.objective_value = self.solver.ObjectiveValue()
-            
+
         logging.info(
                 f"Solver finished with status: {self.solution_status} "
                 f"in {self.solve_time:.2f}s "

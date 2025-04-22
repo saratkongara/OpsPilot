@@ -1,7 +1,7 @@
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, model_validator, field_validator
 from typing import List, Optional
 from opspilot.models.enums import ServiceType, EquipmentType
-from datetime import datetime
+from datetime import datetime, time
 
 class ServiceAssignment(BaseModel):
     id: int
@@ -15,8 +15,8 @@ class ServiceAssignment(BaseModel):
     relative_start: Optional[str] = None  # Start time relative to flight arrival or departure time (e.g., "A+10")
     relative_end: Optional[str] = None # End time relative to flight arrival or departure time (e.g., "D-5")
 
-    start_time: datetime
-    end_time: datetime
+    start_time: time
+    end_time: time
 
     service_type: ServiceType  # Defines if the service is single, multi-task, fixed or equipment
     multi_task_limit: Optional[int] = None  # Limit for cross-utilizing staff in multi-task services
@@ -26,25 +26,30 @@ class ServiceAssignment(BaseModel):
     equipment_type: Optional[EquipmentType] # Type of equipment required for the service
     equipment_id: Optional[int] = None  # Id of the equipment to be used (if any)
 
-    @field_validator('multi_task_limit', always=True)
-    def validate_multi_task_limit(cls, value, values):
-        # Ensure multi_task_limit and exclude_services are only set for MultiTask service types
-        if values.get('service_type') == ServiceType.MULTI_TASK:
-            if value is None:
-                raise ValueError('multi_task_limit must be provided for MultiTask service type')
+    @field_validator("start_time", "end_time", mode='before')
+    def parse_times(cls, v):
+        if isinstance(v, str):
+            return datetime.strptime(v, "%H:%M").time()
+        return v
+    
+    @model_validator(mode="after")
+    def validate_service_assignment(self):
+        # Validate multi_task_limit
+        if self.service_type == ServiceType.MULTI_TASK:
+            if self.multi_task_limit is None:
+                raise ValueError("multi_task_limit must be provided for MultiTask service type")
         else:
-            if value is not None:
-                raise ValueError('multi_task_limit can only be set for MultiTask service type')
-        return value
+            if self.multi_task_limit is not None:
+                raise ValueError("multi_task_limit can only be set for MultiTask service type")
 
-    @field_validator('exclude_services', always=True)
-    def validate_exclude_services(cls, value, values):
-        # Ensure exclude_services is only set for MultiTask service types
-        if values.get('service_type') == ServiceType.MULTI_TASK:
-            return value
-        elif value:
-            raise ValueError('exclude_services can only be set for MultiTask service type')
-        return value
+        # Validate exclude_services
+        if self.service_type == ServiceType.MULTI_TASK:
+            pass  # OK
+        else:
+            if self.exclude_services:
+                raise ValueError("exclude_services can only be set for MultiTask service type")
+
+        return self
 
     def __repr__(self):
         return (
