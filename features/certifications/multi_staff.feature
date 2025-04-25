@@ -1,5 +1,5 @@
-Feature: Basic Staff Assignment
-  As an operations manager
+Feature: Multi Staff Assignment
+  As a scheduler
   I want to assign staff to service assignments
   So that all services are properly staffed
 

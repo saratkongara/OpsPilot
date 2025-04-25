@@ -1,6 +1,6 @@
 from behave import given, when, then
 from opspilot.models import Staff, Service, ServiceType, ServiceAssignment
-from opspilot.models import EquipmentType, Shift, CertificationRequirement, Settings
+from opspilot.models import EquipmentType, Shift, CertificationRequirement, Settings, OptimizationStrategy
 from opspilot.core.scheduler import Scheduler
 import ast
 
@@ -52,7 +52,7 @@ def setup_services(context, services_table):
                 id=int(row['id']),
                 name=row['name'],
                 certifications=ast.literal_eval(row['certifications']),
-                certification_requirement=CertificationRequirement(row['requirement'])
+                certification_requirement=CertificationRequirement(row['requirement'],)
             )
         )
 
@@ -108,6 +108,28 @@ def step_impl(context):
         services=context.services,
         settings=settings
     )
+    context.scheduler.run()
+
+@when('the scheduler runs with settings')
+def step_impl(context):
+    settings_table = context.table
+    settings_row = settings_table[0] if settings_table else {}
+
+    overlap_tolerance_buffer = settings_row.get('overlap_tolerance_buffer', 15)
+    default_travel_time = settings_row.get('default_travel_time', 5)
+    optimization_strategy = settings_row.get('optimization_strategy', 'MINIMIZE_STAFF')
+
+    settings = Settings(overlap_tolerance_buffer=overlap_tolerance_buffer,
+                        default_travel_time=default_travel_time,
+                        optimization_strategy=OptimizationStrategy(optimization_strategy))
+   
+    context.scheduler = Scheduler(
+        roster=context.staff,
+        service_assignments=context.service_assignments,
+        services=context.services,
+        settings=settings
+    )
+    
     context.scheduler.run()
 
 @then('the assignments should be')

@@ -1,7 +1,7 @@
 from ortools.sat.python import cp_model
 from typing import Optional, List, Dict, Tuple
 from  opspilot.core.scheduler_result import SchedulerResult
-from opspilot.models import Staff, Service, ServiceAssignment, Settings, CertificationRequirement
+from opspilot.models import Staff, Service, ServiceAssignment, Settings, OptimizationStrategy, CertificationRequirement
 import logging
 from time import time
 
@@ -117,45 +117,54 @@ class Scheduler:
 
     def set_objective(self) -> None:
         """
-        Set the optimization objective:
-        1. Prioritize higher priority service assignments
-        2. Balance workload among staff
-        3. Consider staff rank/experience
+        Set the optimization objective based on the strategy defined in settings:
+        - MINIMIZE_STAFF: Use the fewest number of staff while covering all service assignments.
+        - BALANCE_WORKLOAD: Distribute assignments evenly across all staff.
         """
-        logging.info("Setting optimization objective...")
-        
-        # # Maximize assignment priority weights
-        # priority_weights = []
-        # for (staff_id, sa_id), var in self.assignment_vars.items():
-        #     sa = self.service_assignment_map[sa_id]
-        #     staff = self.staff_map[staff_id]
-            
-        #     # Base weight is the service priority
-        #     weight = sa.priority
-            
-        #     # Adjust for staff rank (higher rank = more preferred)
-        #     if staff.rank_level is not None:
-        #         weight *= (1 + 1/staff.rank_level)
-                
-        #     priority_weights.append(var * weight)
-        
-        # # Add a small penalty for over-assigning staff to balance workload
-        # staff_load_penalty = []
-        # for staff in self.staff:
-        #     staff_assignments = [
-        #         var for (staff_id, sa_id), var in self.assignment_vars.items()
-        #         if staff_id == staff.id
-        #     ]
-        #     # Small penalty for each assignment beyond the first
-        #     staff_load_penalty.append(sum(staff_assignments) * 0.01)
-        
-        # self.model.Maximize(
-        #     sum(priority_weights) - 
-        #     sum(staff_load_penalty)
-        # )
 
-        # Maximize total assignments
-        self.model.Maximize(sum(self.assignment_vars.values()))
+        strategy = self.settings.optimization_strategy
+        logging.info(f"Setting optimization objective for strategy: {strategy}")
+        
+        if strategy == OptimizationStrategy.MINIMIZE_STAFF:
+            staff_used_vars = {}
+            
+            for staff in self.roster:     
+                # Get all possible assignments for this staff
+                staff_assignment_vars = [
+                    self.assignment_vars[(staff.id, sa.id)]
+                    for sa in self.service_assignments
+                    # if sa.can_assign(staff) # certification/availability check
+                ]
+                
+                if staff_assignment_vars:
+                    used = self.model.NewBoolVar(f"used_{staff.id}")
+                    self.model.AddMaxEquality(used, staff_assignment_vars)
+                    staff_used_vars[staff.id] = used
+            
+            # Primary objective
+            self.model.Minimize(sum(staff_used_vars.values()))
+        elif strategy == OptimizationStrategy.BALANCE_WORKLOAD:
+            # Track total assignments per staff member
+            staff_assignment_counts = []
+            
+            for staff in self.roster:
+                # Get all possible assignments for this staff
+                staff_assignment_vars = [
+                    self.assignment_vars[(staff.id, sa.id)]
+                    for sa in self.service_assignments
+                    # if sa.can_assign(staff) # certification/availability check
+                ]
+                
+                if staff_assignment_vars:
+                    count = self.model.NewIntVar(0, len(self.service_assignments), f"staff_{staff.id}_assignment_count")
+                    self.model.Add(count == sum(staff_assignment_vars))
+                    staff_assignment_counts.append(count)
+            
+            if staff_assignment_counts:
+                # Minimize the maximum assignments any single staff gets
+                max_assignments = self.model.NewIntVar(0, len(self.service_assignments), "max_assignments")
+                self.model.AddMaxEquality(max_assignments, staff_assignment_counts)
+                self.model.Minimize(max_assignments)
 
     def run(self) -> SchedulerResult:
         """Run the optimization and store results."""

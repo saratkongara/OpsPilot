@@ -22,3 +22,7 @@ class ServiceType(str, Enum):
     MULTI_TASK = "M"
     SINGLE = "S"
     FIXED = "F"
+
+class OptimizationStrategy(str, Enum):
+    MINIMIZE_STAFF = "Minimize Staff"  # Fewest staff possible
+    BALANCE_WORKLOAD = "Balance Workload"  # Even distribution

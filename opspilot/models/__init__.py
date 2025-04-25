@@ -4,6 +4,7 @@ from .enums import (
     EquipmentType,
     LocationType,
     ServiceType,
+    OptimizationStrategy,
 )
 from .flight import Flight
 from .location import Location
@@ -16,7 +17,7 @@ from .staff import Staff
 
 __all__ = [
     'Certification', 'CertificationRequirement', 'EquipmentType',
-    'LocationType', 'ServiceType', 'Flight',
+    'LocationType', 'ServiceType', 'OptimizationStrategy', 'Flight',
     'Location', 'ServiceAssignment', 'Service',
     'Settings', 'Shift', 'Staff'
 ]
