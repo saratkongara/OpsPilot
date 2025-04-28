@@ -1,7 +1,7 @@
 from ortools.sat.python import cp_model
 from typing import Optional, List, Dict, Tuple
 from  opspilot.core.scheduler_result import SchedulerResult
-from opspilot.models import Staff, Service, ServiceAssignment, Settings, OptimizationStrategy, CertificationRequirement
+from opspilot.models import Staff, Service, ServiceAssignment, Settings, AssignmentStrategy, CertificationRequirement
 import logging
 from time import time
 
@@ -122,49 +122,43 @@ class Scheduler:
         - BALANCE_WORKLOAD: Distribute assignments evenly across all staff.
         """
 
-        strategy = self.settings.optimization_strategy
-        logging.info(f"Setting optimization objective for strategy: {strategy}")
-        
-        if strategy == OptimizationStrategy.MINIMIZE_STAFF:
-            staff_used_vars = {}
-            
-            for staff in self.roster:     
-                # Get all possible assignments for this staff
-                staff_assignment_vars = [
-                    self.assignment_vars[(staff.id, sa.id)]
-                    for sa in self.service_assignments
-                    # if sa.can_assign(staff) # certification/availability check
-                ]
+        # Create a binary variable: whether a staff is used (i.e., assigned at least once)
+        staff_used = {
+            staff.id: self.model.NewBoolVar(f"staff_used_{staff.id}")
+            for staff in self.roster
+        }
+
+        # Ensure that staff_used is 1 if any assignment is made
+        for staff in self.roster:
+            staff_assignments = [
+                var for (staff_id, _), var in self.assignment_vars.items()
+                if staff_id == staff.id
+            ]
+
+            # If staff has any assignment, staff_used[staff_id] == 1
+            self.model.AddMaxEquality(staff_used[staff.id], staff_assignments)
                 
-                if staff_assignment_vars:
-                    used = self.model.NewBoolVar(f"used_{staff.id}")
-                    self.model.AddMaxEquality(used, staff_assignment_vars)
-                    staff_used_vars[staff.id] = used
-            
-            # Primary objective
-            self.model.Minimize(sum(staff_used_vars.values()))
-        elif strategy == OptimizationStrategy.BALANCE_WORKLOAD:
-            # Track total assignments per staff member
-            staff_assignment_counts = []
-            
-            for staff in self.roster:
-                # Get all possible assignments for this staff
-                staff_assignment_vars = [
-                    self.assignment_vars[(staff.id, sa.id)]
-                    for sa in self.service_assignments
-                    # if sa.can_assign(staff) # certification/availability check
-                ]
-                
-                if staff_assignment_vars:
-                    count = self.model.NewIntVar(0, len(self.service_assignments), f"staff_{staff.id}_assignment_count")
-                    self.model.Add(count == sum(staff_assignment_vars))
-                    staff_assignment_counts.append(count)
-            
-            if staff_assignment_counts:
-                # Minimize the maximum assignments any single staff gets
-                max_assignments = self.model.NewIntVar(0, len(self.service_assignments), "max_assignments")
-                self.model.AddMaxEquality(max_assignments, staff_assignment_counts)
-                self.model.Minimize(max_assignments)
+        # Total number of staff used
+        total_staff_used = self.model.NewIntVar(0, len(self.roster), "total_staff_used")
+        self.model.Add(total_staff_used == sum(staff_used.values()))
+
+        # Total number of assignments made
+        assignment_var_list = list(self.assignment_vars.values())
+        total_assignments = self.model.NewIntVar(0, len(assignment_var_list), "total_assignments")
+        self.model.Add(total_assignments == sum(assignment_var_list))
+
+        # Now, define the objective depending on the strategy
+        strategy = self.settings.assignment_strategy
+        if strategy == AssignmentStrategy.MINIMIZE_STAFF:
+            # Maximize total assignments first, then minimize staff used
+            self.model.Maximize(
+                1000 * total_assignments - total_staff_used
+            )
+        elif strategy == AssignmentStrategy.BALANCE_WORKLOAD:
+            # Maximize total assignments and maximize staff used
+            self.model.Maximize(
+                1000 * total_assignments + total_staff_used
+            )    
 
     def run(self) -> SchedulerResult:
         """Run the optimization and store results."""

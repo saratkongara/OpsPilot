@@ -1,9 +1,9 @@
 Feature: Multi Staff Assignment
   As a scheduler
   I want to assign staff to service assignments
-  So that all services are properly staffed based on the optimization strategy
+  So that all services are properly staffed based on the assignment strategy
 
-  Scenario: Staff overlap should lead to optimal assignment (maximize service coverage)
+  Scenario: Staff overlap should lead to optimal assignment (minimize staff utilization)
     Given the following staff exists:
       | id | name  | certifications | eligible_for_services | shifts          |
       | 1  | Alice | [2]         | ['S']                 | ['08:00-16:00'] |
@@ -20,8 +20,8 @@ Feature: Multi Staff Assignment
       | 2  | 2          | 1           | 09:45      | 10:45    | S            |
 
     When the scheduler runs with settings:
-      | optimization_strategy |
-      | Minimize Staff        | 
+      | assignment_strategy |
+      | Minimize Staff      | 
 
     Then the assignments should be:
       | staff_id | assigned_service_ids |

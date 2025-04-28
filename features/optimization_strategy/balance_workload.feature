@@ -1,7 +1,7 @@
 Feature: Multi Staff Assignment
   As a scheduler
   I want to assign staff to service assignments
-  So that all services are properly staffed based on the optimization strategy
+  So that all services are properly staffed based on the assignment strategy
 
   Scenario: Staff overlap should lead to balanced workload assignment (maximize staff utilization)
     Given the following staff exists:
@@ -20,8 +20,8 @@ Feature: Multi Staff Assignment
       | 2  | 2          | 1           | 09:45      | 10:45    | S            |
 
     When the scheduler runs with settings:
-      | optimization_strategy |
-      | Balance Workload      |
+      | assignment_strategy |
+      | Balance Workload    |
     
     Then the assignments should be:
       | staff_id | assigned_service_ids |
