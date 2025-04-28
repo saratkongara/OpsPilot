@@ -1,7 +1,7 @@
 from ortools.sat.python import cp_model
 from typing import Optional, List, Dict, Tuple
 from  opspilot.core.scheduler_result import SchedulerResult
-from opspilot.models import Staff, Service, ServiceAssignment, Settings, AssignmentStrategy, CertificationRequirement
+from opspilot.models import Staff, Service, Flight, ServiceAssignment, Settings, AssignmentStrategy, CertificationRequirement
 import logging
 from time import time
 
@@ -12,8 +12,9 @@ class Scheduler:
     def __init__(
         self,
         roster: List[Staff],
-        service_assignments: List[ServiceAssignment],
         services: List[Service],
+        flights: List[Flight],
+        service_assignments: List[ServiceAssignment],
         settings: Settings,
         previous_assignments: Optional[Dict[Tuple[int, int], bool]] = None
     ):
@@ -28,8 +29,9 @@ class Scheduler:
             previous_assignments: Optional previous assignments for continuity (staff_id -> service_assignment_id -> assigned)
         """
         self.roster = roster
-        self.service_assignments = service_assignments
         self.services = services
+        self.flights = flights
+        self.service_assignments = service_assignments
         self.settings = settings
         self.previous_assignments = previous_assignments or {}
         
@@ -70,7 +72,7 @@ class Scheduler:
         
         logging.info(f"Created {len(self.assignment_vars)} assignment variables in {time() - start_time:.2f}s")
 
-    def add_certification_constraints(self) -> None:
+    def add_certification_constraint(self) -> None:
         """Ensure staff only get assigned to services they're certified for."""
         start_time = time()
         logging.info("Adding certification constraints...")
@@ -98,7 +100,7 @@ class Scheduler:
         
         logging.info(f"Added certification constraints in {time() - start_time:.2f}s")
 
-    def add_staff_count_constraints(self) -> None:
+    def add_staff_count_constraint(self) -> None:
         """Ensure each service assignment gets the required number of staff."""
         start_time = time()
         logging.info("Adding staff count constraints...")
@@ -114,6 +116,34 @@ class Scheduler:
             self.model.Add(sum(assignment_vars) <= service_assignment.staff_count)
 
         logging.info(f"Added staff count constraints in {time() - start_time:.2f}s")
+
+    def add_staff_availability_constraint(self) -> None:
+        """Ensure staff are only assigned to services they are available for."""
+        """Ensure staff are only assigned to services they are available for."""
+        for (staff_id, service_assignment_id), assignment_var in self.assignment_vars.items():
+            staff = next(staff for staff in self.roster if staff.id == staff_id)
+            service_assignment = next(sa for sa in self.service_assignments if sa.id == service_assignment_id)
+
+            # If it's flight-related, resolve using relative_start and relative_end
+            if service_assignment.flight_number:
+                flight = next(flight for flight in self.flights if flight.number == service_assignment.flight_number)
+                service_start_minutes, service_end_minutes = flight.get_service_time_minutes(
+                    service_assignment.relative_start,
+                    service_assignment.relative_end
+                )
+            else:
+                # Non-flight services (like Common Zone), use absolute start_time and end_time
+                service_start_minutes = service_assignment.start_minutes
+                service_end_minutes = service_assignment.end_minutes
+
+            # Check staff availability
+            if not staff.is_available_for_service(service_start_minutes, service_end_minutes):
+                logging.debug(
+                    f"Staff {staff_id} not available for service_assignment {service_assignment_id} "
+                    f"(Service time {service_start_minutes}–{service_end_minutes} mins), setting var {assignment_var} to 0"
+                )
+                self.model.Add(assignment_var == 0)
+
 
     def set_objective(self) -> None:
         """
@@ -166,8 +196,9 @@ class Scheduler:
         start_time = time()
 
         self.create_assignment_variables()
-        self.add_certification_constraints()  # Start with just certifications
-        self.add_staff_count_constraints()  # Will add later
+        self.add_certification_constraint()
+        self.add_staff_count_constraint()
+        self.add_staff_availability_constraint()
         self.set_objective()
         
         status = self.solver.Solve(self.model)

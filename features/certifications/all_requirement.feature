@@ -12,11 +12,16 @@ Feature: All Certification Requirement Check
       | id | name     | certifications | requirement |
       | 1  | Security | [1, 2]         | All         |
     
+    And the following flights exist:
+      | number   | arrival_time | departure_time |
+      | AA123    | 08:30        | 10:00          |
+
     And the following service assignments exist:
       | id | service_id | staff_count | start_time | end_time | service_type |
       | 1  | 1          | 1           | 08:30      | 09:30    | S            |
     
     When the scheduler runs
+
     Then the assignments should be:
       | staff_id | assigned_service_ids |
       | 1        | [1]                  |
@@ -34,11 +39,16 @@ Feature: All Certification Requirement Check
       | id | name     | certifications | requirement |
       | 1  | Security | [1, 2]         | All         |
     
+    And the following flights exist:
+      | number   | arrival_time | departure_time |
+      | AA123    | 08:30        | 10:00          |
+
     And the following service assignments exist:
       | id | service_id | staff_count | start_time | end_time | service_type |
       | 1  | 1          | 1           | 08:30      | 09:30    | S            |
     
     When the scheduler runs
+    
     Then the assignments should be:
       | staff_id | assigned_service_ids |
       | 1        | []                   |

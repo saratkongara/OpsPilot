@@ -32,6 +32,17 @@ class ServiceAssignment(BaseModel):
             return datetime.strptime(v, "%H:%M").time()
         return v
     
+    @property
+    def start_minutes(self):
+        return self.start_time.hour * 60 + self.start_time.minute
+
+    @property
+    def end_minutes(self):
+        end_minutes = self.end_time.hour * 60 + self.end_time.minute
+        if end_minutes < self.start_minutes:
+            end_minutes += 24 * 60
+        return end_minutes
+    
     @model_validator(mode="after")
     def validate_service_assignment(self):
         # Validate multi_task_limit

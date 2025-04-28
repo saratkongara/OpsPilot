@@ -1,6 +1,6 @@
 from behave import given, when, then
-from opspilot.models import Staff, Service, ServiceType, ServiceAssignment
-from opspilot.models import EquipmentType, Shift, CertificationRequirement, Settings, AssignmentStrategy
+from opspilot.models import Staff, Service, ServiceType, Flight, ServiceAssignment
+from opspilot.models import EquipmentType, Shift, CertificationRequirement, Settings
 from opspilot.core.scheduler import Scheduler
 import ast
 
@@ -52,7 +52,19 @@ def setup_services(context, services_table):
                 id=int(row['id']),
                 name=row['name'],
                 certifications=ast.literal_eval(row['certifications']),
-                certification_requirement=CertificationRequirement(row['requirement'],)
+                certification_requirement=CertificationRequirement(row['requirement'])
+            )
+        )
+
+def setup_flights(context, flights_table):
+    context.flights = []
+
+    for row in flights_table:
+        context.flights.append(
+            Flight(
+                number=row['number'],
+                arrival_time=row.get('arrival_time'),
+                departure_time=row.get('departure_time')
             )
         )
 
@@ -95,6 +107,10 @@ def step_impl(context):
 def step_impl(context):
     setup_services(context, context.table)
 
+@given('the following flights exist')
+def step_impl(context):
+    setup_flights(context, context.table)
+
 @given('the following service assignments exist')
 def step_impl(context):
     setup_service_assignments(context, context.table)
@@ -104,8 +120,9 @@ def step_impl(context):
     settings = Settings()
     context.scheduler = Scheduler(
         roster=context.staff,
-        service_assignments=context.service_assignments,
         services=context.services,
+        flights=context.flights,
+        service_assignments=context.service_assignments,
         settings=settings
     )
     context.scheduler.run()
@@ -125,8 +142,9 @@ def step_impl(context):
    
     context.scheduler = Scheduler(
         roster=context.staff,
-        service_assignments=context.service_assignments,
         services=context.services,
+        flights=context.flights,
+        service_assignments=context.service_assignments,
         settings=settings
     )
 

@@ -14,6 +14,10 @@ Feature: Multi Staff Assignment
       | 1  | Check-In     | [1]            | Any         |
       | 2  | Boarding     | [2]            | Any         |
 
+    And the following flights exist:
+      | number   | arrival_time | departure_time |
+      | AA123    | 08:30        | 10:00          |
+      
     And the following service assignments exist:
       | id | service_id | staff_count | start_time | end_time | service_type |
       | 1  | 1          | 1           | 08:30      | 09:30    | S            |
