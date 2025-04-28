@@ -3,3 +3,5 @@ def before_scenario(context, scenario):
     context.services = []
     context.flights = []
     context.service_assignments = []
+
+    #print(f"\nRunning scenario: {scenario.name}")
