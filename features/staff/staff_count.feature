@@ -13,10 +13,6 @@ Feature: Staff Count Constraint
     And the following services exist:
       | id | name     | certifications | requirement |
       | 1  | Security | [1, 2]         | All         |
-
-    And the following flights exist:
-      | number   | arrival_time | departure_time |
-      | AA123    | 08:30        | 10:00          |
   
     And the following service assignments exist:
       | id | service_id | staff_count | start_time | end_time | service_type |
@@ -37,10 +33,6 @@ Feature: Staff Count Constraint
     And the following services exist:
       | id | name     | certifications | requirement |
       | 1  | Security | [1, 2]         | All         |
-
-    And the following flights exist:
-        | number   | arrival_time | departure_time |
-        | AA123    | 08:30        | 10:00          |
 
     And the following service assignments exist:
       | id | service_id | staff_count | start_time | end_time | service_type |
@@ -66,10 +58,6 @@ Feature: Staff Count Constraint
     And the following services exist:
       | id | name    | certifications | requirement |
       | 1  | Cleaning| [1, 2]         | All         |
-
-    And the following flights exist:
-        | number   | arrival_time | departure_time |
-        | AA123    | 08:30        | 10:00          |
 
     And the following service assignments exist:
       | id | service_id | staff_count | start_time | end_time | service_type |

@@ -19,9 +19,9 @@ Feature: Multi Staff Assignment
       | AA123    | 12:30        | 14:00          |
 
     And the following service assignments exist:
-      | id | service_id | staff_count | priority | location_id | flight_number | relative_start | relative_end | start_time    | end_time     | service_type | multi_task_limit | exclude_services | needs_equipment | equipment_type | equipment_id |
-      | 1  | 1          | 1           | 1.0      | 101         | AA123         | A+30           | D-45         | 08:30         | 09:30        | S            |                  |        []        |    false        |                |              |
-      | 2  | 2          | 1           | 2.0      | 205         | AA123         | A+45           | D-30         | 09:45         | 10:45        | S            |                  |        []        |    false        |                |              | 
+      | id | service_id | staff_count | priority | location_id | flight_number | relative_start | relative_end | service_type |
+      | 1  | 1          | 1           | 1.1      | 101         | AA123         | A+30           | D-45         | S            |
+      | 2  | 2          | 1           | 1.2      | 205         | AA123         | A+45           | D-30         | S            | 
     
     When the scheduler runs
 

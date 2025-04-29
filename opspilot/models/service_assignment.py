@@ -15,8 +15,8 @@ class ServiceAssignment(BaseModel):
     relative_start: Optional[str] = None  # Start time relative to flight arrival or departure time (e.g., "A+10")
     relative_end: Optional[str] = None # End time relative to flight arrival or departure time (e.g., "D-5")
 
-    start_time: time
-    end_time: time
+    start_time: Optional[time] = None
+    end_time: Optional[time] = None
 
     service_type: ServiceType  # Defines if the service is single, multi-task, fixed or equipment
     multi_task_limit: Optional[int] = None  # Limit for cross-utilizing staff in multi-task services
@@ -28,20 +28,37 @@ class ServiceAssignment(BaseModel):
 
     @field_validator("start_time", "end_time", mode='before')
     def parse_times(cls, v):
+        if v is None:
+            return None
         if isinstance(v, str):
             return datetime.strptime(v, "%H:%M").time()
         return v
     
     @property
     def start_minutes(self):
+        if not self.start_time:
+            return None
         return self.start_time.hour * 60 + self.start_time.minute
 
     @property
     def end_minutes(self):
+        if not self.end_time:
+            return None
         end_minutes = self.end_time.hour * 60 + self.end_time.minute
-        if end_minutes < self.start_minutes:
+        if end_minutes < (self.start_minutes or 0):
             end_minutes += 24 * 60
         return end_minutes
+    
+    @model_validator(mode='after')
+    def validate_time_specification(self):
+        has_absolute = (self.start_time is not None) and (self.end_time is not None)
+        has_relative = (self.flight_number is not None) and (self.relative_start is not None) and (self.relative_end is not None)
+
+        if has_absolute and has_relative:
+            raise ValueError("Cannot specify both absolute and relative times")
+        if not (has_absolute or has_relative):
+            raise ValueError("Must specify either absolute or relative times")
+        return self
     
     @model_validator(mode="after")
     def validate_service_assignment(self):

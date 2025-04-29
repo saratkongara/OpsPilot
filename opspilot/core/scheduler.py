@@ -119,7 +119,6 @@ class Scheduler:
 
     def add_staff_availability_constraint(self) -> None:
         """Ensure staff are only assigned to services they are available for."""
-        """Ensure staff are only assigned to services they are available for."""
         for (staff_id, service_assignment_id), assignment_var in self.assignment_vars.items():
             staff = next(staff for staff in self.roster if staff.id == staff_id)
             service_assignment = next(sa for sa in self.service_assignments if sa.id == service_assignment_id)
@@ -138,7 +137,7 @@ class Scheduler:
 
             # Check staff availability
             if not staff.is_available_for_service(service_start_minutes, service_end_minutes):
-                logging.debug(
+                logging.info(
                     f"Staff {staff_id} not available for service_assignment {service_assignment_id} "
                     f"(Service time {service_start_minutes}–{service_end_minutes} mins), setting var {assignment_var} to 0"
                 )

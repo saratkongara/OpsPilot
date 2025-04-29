@@ -22,8 +22,15 @@ class Staff(BaseModel):
             shift_start = shift.start_minutes
             shift_end = shift.end_minutes
 
-            # Simple case: shift covers service window
-            if shift_start <= service_start_minutes and shift_end >= service_end_minutes:
+            normalized_service_start = service_start_minutes
+            normalized_service_end = service_end_minutes
+
+            if service_start_minutes < shift_start:
+                normalized_service_start += 24 * 60
+            if service_end_minutes < shift_start:
+                normalized_service_end += 24 * 60
+
+            if shift_start <= normalized_service_start and shift_end >= normalized_service_end:
                 return True
 
         return False

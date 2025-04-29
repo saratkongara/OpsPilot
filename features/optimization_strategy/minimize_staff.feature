@@ -6,18 +6,14 @@ Feature: Multi Staff Assignment
   Scenario: Staff overlap should lead to optimal assignment (minimize staff utilization)
     Given the following staff exists:
       | id | name  | certifications | eligible_for_services | shifts          |
-      | 1  | Alice | [2]         | ['S']                 | ['08:00-16:00'] |
-      | 2  | Bob   | [1, 2]      | ['S']                 | ['08:00-16:00'] |
+      | 1  | Alice | [2]            | ['S']                 | ['08:00-16:00'] |
+      | 2  | Bob   | [1, 2]         | ['S']                 | ['08:00-16:00'] |
 
     And the following services exist:
       | id | name         | certifications | requirement |
       | 1  | Check-In     | [1]            | Any         |
       | 2  | Boarding     | [2]            | Any         |
 
-    And the following flights exist:
-      | number   | arrival_time | departure_time |
-      | AA123    | 08:30        | 10:00          |
-      
     And the following service assignments exist:
       | id | service_id | staff_count | start_time | end_time | service_type |
       | 1  | 1          | 1           | 08:30      | 09:30    | S            |

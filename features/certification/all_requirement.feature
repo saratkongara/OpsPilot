@@ -1,16 +1,16 @@
-Feature: Any Certification Requirement Check
+Feature: All Certification Requirement Check
   As a scheduler
-  I want to verify staff assignment with Any certification requirement
-  So that staff with at least one matching certification are assigned
+  I want to verify staff assignment with All certification requirement
+  So that only staff with all required certifications are assigned
 
-  Scenario: Staff with one matching certification gets assigned
+  Scenario: Staff with all required certifications gets assigned
     Given the following staff exists:
       | id | name | certifications | eligible_for_services | shifts          |
-      | 1  | John | [1, 3]         | ['S']                 | ['08:00-16:00'] |
+      | 1  | John | [1, 2, 3]      | ['S']                 | ['08:00-16:00'] |
     
     And the following services exist:
-      | id | name    | certifications | requirement |
-      | 1  | Baggage | [1, 2]         | Any         |
+      | id | name     | certifications | requirement |
+      | 1  | Security | [1, 2]         | All         |
 
     And the following service assignments exist:
       | id | service_id | staff_count | start_time | end_time | service_type |
@@ -26,18 +26,14 @@ Feature: Any Certification Requirement Check
       | service_assignment_id | assigned_staff_count |
       | 1                     | 1                    |
 
-  Scenario: Staff with no matching certifications not assigned
+  Scenario: Staff missing one certification not assigned
     Given the following staff exists:
       | id | name  | certifications | eligible_for_services | shifts          |
-      | 1  | Sarah | [3, 4]         | ['S']                 | ['08:00-16:00'] |
+      | 1  | Sarah | [1, 3]         | ['S']                 | ['08:00-16:00'] |
     
     And the following services exist:
-      | id | name    | certifications | requirement |
-      | 1  | Baggage | [1, 2]         | Any         |
-    
-    And the following flights exist:
-      | number   | arrival_time | departure_time |
-      | AA123    | 08:30        | 10:00          |
+      | id | name     | certifications | requirement |
+      | 1  | Security | [1, 2]         | All         |
 
     And the following service assignments exist:
       | id | service_id | staff_count | start_time | end_time | service_type |
@@ -52,4 +48,3 @@ Feature: Any Certification Requirement Check
     And the service coverage should be:
       | service_assignment_id | assigned_staff_count |
       | 1                     | 0                    |
-
