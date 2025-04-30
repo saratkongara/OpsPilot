@@ -15,9 +15,9 @@ Feature: Multi Staff Assignment
       | 2  | Boarding     | [2]            | Any         |
 
     And the following service assignments exist:
-      | id | service_id | staff_count | start_time | end_time | service_type |
-      | 1  | 1          | 1           | 08:30      | 09:30    | S            |
-      | 2  | 2          | 1           | 09:45      | 10:45    | S            |
+      | id | service_id | staff_count | start_time | end_time | service_type | multi_task_limit |
+      | 1  | 1          | 1           | 08:30      | 09:30    | M            |  2               |
+      | 2  | 2          | 1           | 09:45      | 10:45    | M            |  2               |
 
     When the scheduler runs with settings:
       | assignment_strategy |

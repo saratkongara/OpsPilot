@@ -2,8 +2,9 @@ from ortools.sat.python import cp_model
 from typing import Optional, List, Dict, Tuple
 from  opspilot.core.scheduler_result import SchedulerResult
 from opspilot.models import Staff, Service, Flight, ServiceAssignment, Settings, AssignmentStrategy, CertificationRequirement
-import logging
 from time import time
+from collections import defaultdict
+import logging
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
@@ -144,6 +145,45 @@ class Scheduler:
                 self.model.Add(assignment_var == 0)
 
 
+    def add_single_service_constraints(self):
+        """
+        Enforces Single (S) service assignment rules:
+        1. A staff member can be assigned to at most one 'S' type service per flight.
+        2. If assigned to an 'S' service, they cannot be assigned to any other service on the same flight.
+        """
+        # Group service assignments by (flight_number, staff_id)
+        flight_staff_to_vars = defaultdict(lambda: {"S": [], "other": []})
+
+        for (staff_id, service_assignment_id), var in self.assignment_vars.items():
+            service_assignment = self.service_assignment_map[service_assignment_id]
+            flight_number = service_assignment.flight_number
+            service_type = service_assignment.service_type
+
+            if service_type == 'S':
+                flight_staff_to_vars[(flight_number, staff_id)]["S"].append(var)
+            else:
+                flight_staff_to_vars[(flight_number, staff_id)]["other"].append(var)
+
+        for (flight_number, staff_id), grouped in flight_staff_to_vars.items():
+            s_vars = grouped["S"]
+            other_vars = grouped["other"]
+
+            if not s_vars:
+                continue
+
+            # Constraint 1: At most one 'S' service per flight
+            self.model.Add(sum(s_vars) <= 1)
+
+            if not other_vars:
+                continue
+
+            # Constraint 2: If assigned to an 'S' service, cannot be assigned to other services
+            has_s = self.model.NewBoolVar(f's_assigned_{flight_number}_{staff_id}')
+            self.model.Add(sum(s_vars) == 1).OnlyEnforceIf(has_s)
+            self.model.Add(sum(s_vars) == 0).OnlyEnforceIf(has_s.Not())
+
+            self.model.Add(sum(other_vars) == 0).OnlyEnforceIf(has_s)
+
     def set_objective(self) -> None:
         """
         Set the optimization objective based on the strategy defined in settings:
@@ -176,18 +216,40 @@ class Scheduler:
         total_assignments = self.model.NewIntVar(0, len(assignment_var_list), "total_assignments")
         self.model.Add(total_assignments == sum(assignment_var_list))
 
-        # Now, define the objective depending on the strategy
+        # Priority score: lower priority values (like 22.3 > 44.12) are better → negative weighting
+        priority_score = sum(
+            -int(self.service_assignment_map[service_assignment_id].priority * 1000) * var
+            for (_, service_assignment_id), var in self.assignment_vars.items()
+        )
+
+        # Strategy-driven objective
         strategy = self.settings.assignment_strategy
+
         if strategy == AssignmentStrategy.MINIMIZE_STAFF:
-            # Maximize total assignments first, then minimize staff used
             self.model.Maximize(
-                1000 * total_assignments - total_staff_used
+                1_000_000_000 * total_assignments +   # Maximize total assignments (most important)
+                1_000 * priority_score -              # Favor lower priority values
+                total_staff_used                      # Then minimize staff used
             )
         elif strategy == AssignmentStrategy.BALANCE_WORKLOAD:
-            # Maximize total assignments and maximize staff used
             self.model.Maximize(
-                1000 * total_assignments + total_staff_used
-            )    
+                1_000_000_000 * total_assignments +   # Maximize total assignments (most important)
+                1_000 * priority_score +              # Favor lower priority values
+                total_staff_used                      # Then maximize staff used
+            )  
+          
+        # Now, define the objective depending on the strategy
+        # strategy = self.settings.assignment_strategy
+        # if strategy == AssignmentStrategy.MINIMIZE_STAFF:
+        #     # Maximize total assignments first, then minimize staff used
+        #     self.model.Maximize(
+        #         1000 * total_assignments - total_staff_used
+        #     )
+        # elif strategy == AssignmentStrategy.BALANCE_WORKLOAD:
+        #     # Maximize total assignments and maximize staff used
+        #     self.model.Maximize(
+        #         1000 * total_assignments + total_staff_used
+        #     )    
 
     def run(self) -> SchedulerResult:
         """Run the optimization and store results."""
@@ -198,6 +260,7 @@ class Scheduler:
         self.add_certification_constraint()
         self.add_staff_count_constraint()
         self.add_staff_availability_constraint()
+        self.add_single_service_constraints()
         self.set_objective()
         
         status = self.solver.Solve(self.model)
