@@ -1,6 +1,6 @@
 from behave import given, when, then
-from opspilot.models import Staff, Service, ServiceType, Flight, ServiceAssignment
-from opspilot.models import EquipmentType, Shift, CertificationRequirement, Settings
+from opspilot.models import Staff, Service, Flight, Location, ServiceAssignment, ServiceType
+from opspilot.models import EquipmentType, Shift, CertificationRequirement, LocationType, Settings
 from opspilot.core.scheduler import Scheduler
 import ast
 
@@ -68,6 +68,18 @@ def setup_flights(context, flights_table):
             )
         )
 
+def setup_locations(context, locations_table):
+    context.locations = []
+    
+    for row in locations_table:
+        context.locations.append(
+            Location(
+                id=int(row['id']),
+                name=row['name'],
+                location_type=row['location_type'],
+                parent_id=int(row['parent_id']) if row.get('parent_id') else None,
+            )
+        )
 def setup_service_assignments(context, assignments_table):
     context.service_assignments = []
 
@@ -110,6 +122,10 @@ def step_impl(context):
 @given('the following flights exist')
 def step_impl(context):
     setup_flights(context, context.table)
+
+@given('the following locations exist')
+def step_impl(context):
+    setup_locations(context, context.table)
 
 @given('the following service assignments exist')
 def step_impl(context):

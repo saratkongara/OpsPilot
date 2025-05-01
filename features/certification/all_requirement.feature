@@ -12,9 +12,13 @@ Feature: All Certification Requirement Check
       | id | name     | certifications | requirement |
       | 1  | Security | [1, 2]         | All         |
 
+    And the following locations exist:
+      | id | name       | location_type |
+      | 1  | Terminal A | Terminal      |
+      
     And the following service assignments exist:
-      | id | service_id | staff_count | start_time | end_time | service_type |
-      | 1  | 1          | 1           | 08:30      | 09:30    | S            |
+      | id | service_id | staff_count | location_id | start_time | end_time | service_type |
+      | 1  | 1          | 1           | 1           | 08:30      | 09:30    | S            |
     
     When the scheduler runs
 
@@ -35,9 +39,13 @@ Feature: All Certification Requirement Check
       | id | name     | certifications | requirement |
       | 1  | Security | [1, 2]         | All         |
 
+    And the following locations exist:
+      | id | name       | location_type |
+      | 1  | Terminal A | Terminal      |
+
     And the following service assignments exist:
-      | id | service_id | staff_count | start_time | end_time | service_type |
-      | 1  | 1          | 1           | 08:30      | 09:30    | S            |
+      | id | service_id | staff_count | location_id | start_time | end_time | service_type |
+      | 1  | 1          | 1           | 1           | 08:30      | 09:30    | S            |
     
     When the scheduler runs
 

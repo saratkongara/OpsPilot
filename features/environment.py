@@ -4,6 +4,7 @@ def before_scenario(context, scenario):
     context.staff = []
     context.services = []
     context.flights = []
+    context.locations = []
     context.service_assignments = []
 
     if 'wip' in scenario.effective_tags:

@@ -18,11 +18,15 @@ Feature: Single Service Assignment with Priorities
       | number | arrival_time | departure_time |
       | FL100  | 09:00        | 11:00          |
 
+    And the following locations exist:
+      | id | name   | location_type |
+      | 1  | Bay 44 | Bay           |
+
     And the following service assignments exist:
-      | id | service_id | staff_count | relative_start | relative_end | service_type | priority | flight_number |
-      | 1  | 1          | 1           | A+10           | A+40         | S            | 7.2        | FL100         |
-      | 2  | 2          | 1           | A+20           | A+50         | S            | 7.1        | FL100         |
-      | 3  | 3          | 1           | A+30           | A+60         | S            | 7.3        | FL100         |
+      | id | service_id | staff_count |location_id | flight_number | relative_start | relative_end | service_type | priority |
+      | 1  | 1          | 1           | 1          | FL100         | A+10           | A+40         | S            | 7.2      |
+      | 2  | 2          | 1           | 1          | FL100         | A+20           | A+50         | S            | 7.1      |
+      | 3  | 3          | 1           | 1          | FL100         | A+30           | A+60         | S            | 7.3      |
 
     When the scheduler runs
 

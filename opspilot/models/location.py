@@ -1,28 +1,37 @@
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Dict, Optional
 from opspilot.models.enums import LocationType
 
 class Location(BaseModel):
     id: int
     name: str
     location_type: LocationType
-    parent: Optional['Location'] = None   # Reference to parent (optional)
-    children: List['Location'] = []       # Sub-locations (e.g., gates within a zone)
+    parent_id: Optional[int] = None
+        
+    def get_children(self, location_map: Dict[int, 'Location']) -> List['Location']:
+        """Get immediate children of this location using a location ID map."""
+        return [loc for loc in location_map.values() if loc.parent_id == self.id]
     
-    def add_child(self, location: 'Location') -> None:
-        """Add a sub-location to this location."""
-        self.children.append(location)
+    def get_all_descendants(self, location_map: Dict[int, 'Location']) -> List['Location']:
+        """Recursively fetch all sub-locations (children, grandchildren, etc.)."""
+        descendants = []
+        for child in self.get_children(location_map):
+            descendants.append(child)
+            descendants.extend(child.get_all_descendants(location_map))
+        return descendants
     
-    def remove_child(self, location: 'Location') -> None:
-        """Remove a sub-location from this location."""
-        self.children.remove(location)
-
-    def get_all_sub_locations(self) -> List['Location']:
-        """Recursively fetch all sub-locations (children)."""
-        sub_locations = self.children[:]
-        for child in self.children:
-            sub_locations.extend(child.get_all_sub_locations())
-        return sub_locations
-
+    def get_parent(self, location_map: Dict[int, 'Location']) -> Optional['Location']:
+        """Get parent location if it exists."""
+        return location_map.get(self.parent_id) if self.parent_id else None
+    
+    def add_child(self, child: 'Location') -> None:
+        """Establish parent-child relationship (one-way)."""
+        child.parent_id = self.id
+    
+    def remove_child(self, child: 'Location') -> None:
+        """Remove parent-child relationship."""
+        if child.parent_id == self.id:
+            child.parent_id = None
+    
     def __repr__(self):
-        return f"<Location(id={self.id}, name={self.name}, type={self.location_type})>"
+        return f"<Location(id={self.id}, name={self.name}, type={self.location_type}, parent_id={self.parent_id})>"

@@ -7,7 +7,7 @@ class CertificationRequirement(str, Enum):
 class EquipmentType(str, Enum):
     GroundPowerUnit = "GPU"
     PushBackTractor = "PBT"
-    BagggeLoader = "BFL"
+    BaggageLoader = "BFL"
     AirStarterUnit = "ASU"
 
 class LocationType(str, Enum):

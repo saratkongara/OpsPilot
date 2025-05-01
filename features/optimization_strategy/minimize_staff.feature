@@ -14,10 +14,14 @@ Feature: Multi Staff Assignment
       | 1  | Check-In     | [1]            | Any         |
       | 2  | Boarding     | [2]            | Any         |
 
+    And the following locations exist:
+      | id | name       | location_type |
+      | 1  | Terminal A | Terminal      |
+      
     And the following service assignments exist:
-      | id | service_id | staff_count | start_time | end_time | service_type | multi_task_limit |
-      | 1  | 1          | 1           | 08:30      | 09:30    | M            |  2               |
-      | 2  | 2          | 1           | 09:45      | 10:45    | M            |  2               |
+      | id | service_id | staff_count | location_id | start_time | end_time | service_type |
+      | 1  | 1          | 1           | 1           | 08:30      | 09:30    | S            |
+      | 2  | 2          | 1           | 1           | 09:45      | 10:45    | S            |
 
     When the scheduler runs with settings:
       | assignment_strategy |

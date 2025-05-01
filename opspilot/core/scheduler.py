@@ -147,10 +147,15 @@ class Scheduler:
 
     def add_single_service_constraints(self):
         """
-        Enforces Single (S) service assignment rules:
+        Enforces Single (S) service assignment rules, but only for FlightZone services:
         1. A staff member can be assigned to at most one 'S' type service per flight.
         2. If assigned to an 'S' service, they cannot be assigned to any other service on the same flight.
+
+        These constraints are skipped for CommonZone services (service_assignment.flight_number is None).
+        As CommonZone services can only be either Single or Fixed, the service transition constraint will make sure
+        that a staff member is not assigned to multiple CommonZone services (at same or different location) at the same time.
         """
+
         # Group service assignments by (flight_number, staff_id)
         flight_staff_to_vars = defaultdict(lambda: {"S": [], "other": []})
 
@@ -158,6 +163,10 @@ class Scheduler:
             service_assignment = self.service_assignment_map[service_assignment_id]
             flight_number = service_assignment.flight_number
             service_type = service_assignment.service_type
+
+            # Only apply constraints for FlightZone services
+            if flight_number is None:
+                continue
 
             if service_type == 'S':
                 flight_staff_to_vars[(flight_number, staff_id)]["S"].append(var)
@@ -177,12 +186,75 @@ class Scheduler:
             if not other_vars:
                 continue
 
-            # Constraint 2: If assigned to an 'S' service, cannot be assigned to other services
+            # Constraint 2: If assigned to an 'S' service, cannot be assigned to other services on the same flight
             has_s = self.model.NewBoolVar(f's_assigned_{flight_number}_{staff_id}')
             self.model.Add(sum(s_vars) == 1).OnlyEnforceIf(has_s)
             self.model.Add(sum(s_vars) == 0).OnlyEnforceIf(has_s.Not())
 
             self.model.Add(sum(other_vars) == 0).OnlyEnforceIf(has_s)
+
+    def add_fixed_service_constraints(self):
+        """
+        Enforces Fixed (F) service assignment rules:
+        1. For FlightZone:
+        - A staff member can be assigned to at most one Fixed (F) service per flight.
+
+        2. Across all zones (FlightZone + CommonZone):
+        - A staff member can be assigned to only one specific Fixed service_id for the entire day (repeated at different times is okay).
+        - If assigned to any Fixed (F) service, staff cannot be assigned to any non-Fixed (S/C/M) service for the whole day.
+        """
+
+        # Step 1: FlightZone — at most one Fixed per flight
+        flight_staff_to_fixed_vars = defaultdict(list)
+
+        for (staff_id, sa_id), var in self.assignment_vars.items():
+            sa = self.service_assignment_map[sa_id]
+            if sa.flight_number is not None and sa.service_type == 'F':
+                flight_staff_to_fixed_vars[(sa.flight_number, staff_id)].append(var)
+
+        for (flight_number, staff_id), fixed_vars in flight_staff_to_fixed_vars.items():
+            self.model.Add(sum(fixed_vars) <= 1)
+
+        # Step 2: Only one Fixed service_id per staff for the whole day
+        staff_to_fixed_services = defaultdict(lambda: defaultdict(list))
+
+        for (staff_id, sa_id), var in self.assignment_vars.items():
+            sa = self.service_assignment_map[sa_id]
+            if sa.service_type == 'F':
+                staff_to_fixed_services[staff_id][sa.service_id].append(var)
+
+        for staff_id, service_to_vars in staff_to_fixed_services.items():
+            service_flags = []
+            for service_id, vars_for_service in service_to_vars.items():
+                flag = self.model.NewBoolVar(f"staff_{staff_id}_uses_fixed_{service_id}")
+                self.model.Add(sum(vars_for_service) >= 1).OnlyEnforceIf(flag)
+                self.model.Add(sum(vars_for_service) == 0).OnlyEnforceIf(flag.Not())
+                service_flags.append(flag)
+
+            self.model.Add(sum(service_flags) <= 1)
+
+        # Step 3: If assigned to any Fixed service, block all non-Fixed assignments (whole day)
+        for staff_id in set(staff_id for (staff_id, _) in self.assignment_vars):
+            fixed_vars = []
+            non_fixed_vars = []
+
+            for (s_id, sa_id), var in self.assignment_vars.items():
+                if s_id != staff_id:
+                    continue
+                sa = self.service_assignment_map[sa_id]
+                if sa.service_type == 'F':
+                    fixed_vars.append(var)
+                else:
+                    non_fixed_vars.append(var)
+
+            if fixed_vars and non_fixed_vars:
+                fixed_selected = self.model.NewBoolVar(f"staff_{staff_id}_assigned_fixed")
+                self.model.Add(sum(fixed_vars) >= 1).OnlyEnforceIf(fixed_selected)
+                self.model.Add(sum(fixed_vars) == 0).OnlyEnforceIf(fixed_selected.Not())
+
+                for nf_var in non_fixed_vars:
+                    self.model.Add(nf_var == 0).OnlyEnforceIf(fixed_selected)
+
 
     def set_objective(self) -> None:
         """
@@ -261,6 +333,7 @@ class Scheduler:
         self.add_staff_count_constraint()
         self.add_staff_availability_constraint()
         self.add_single_service_constraints()
+        self.add_fixed_service_constraints()
         self.set_objective()
         
         status = self.solver.Solve(self.model)
