@@ -73,7 +73,7 @@ class Scheduler:
         
         logging.info(f"Created {len(self.assignment_vars)} assignment variables in {time() - start_time:.2f}s")
 
-    def add_certification_constraint(self) -> None:
+    def add_staff_certification_constraint(self) -> None:
         """Ensure staff only get assigned to services they're certified for."""
         start_time = time()
         logging.info("Adding certification constraints...")
@@ -87,6 +87,20 @@ class Scheduler:
                 self.model.Add(var == 0)
 
         logging.info(f"Added certification constraints in {time() - start_time:.2f}s")
+
+    def add_staff_eligibility_constraint(self) -> None:
+        """Ensure staff are only assigned to services they are eligible for based on service type."""
+        start_time = time()
+        logging.info("Adding eligibility constraints...")
+
+        for (staff_id, service_assignment_id), var in self.assignment_vars.items():
+            staff = self.staff_map[staff_id]
+            service_assignment = self.service_assignment_map[service_assignment_id]
+
+            if not staff.is_eligible_for_service(service_assignment):
+                self.model.Add(var == 0)
+
+        logging.info(f"Added eligibility constraints in {time() - start_time:.2f}s")
 
     def add_staff_count_constraint(self) -> None:
         """Ensure each service assignment gets the required number of staff."""
@@ -316,7 +330,8 @@ class Scheduler:
         start_time = time()
 
         self.create_assignment_variables()
-        self.add_certification_constraint()
+        self.add_staff_certification_constraint()
+        self.add_staff_eligibility_constraint()
         self.add_staff_count_constraint()
         self.add_staff_availability_constraint()
         self.add_single_service_constraints()
