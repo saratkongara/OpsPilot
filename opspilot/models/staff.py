@@ -1,8 +1,7 @@
 from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime
-from opspilot.models.shift import Shift
-from opspilot.models.enums import ServiceType
+from opspilot.models import Shift, Service, CertificationRequirement, ServiceType, ServiceAssignment
 
 class Staff(BaseModel):
     id: int
@@ -34,3 +33,38 @@ class Staff(BaseModel):
                 return True
 
         return False
+    
+
+    def is_certified_for_service(self, service: Service) -> bool:
+        """
+        Checks if the staff meets the certification requirements to perform the given service.
+        """
+        required = set(service.certifications)
+        staff_certs = set(self.certifications)
+
+        if service.certification_requirement == CertificationRequirement.ALL:
+            return required.issubset(staff_certs)
+
+        elif service.certification_requirement == CertificationRequirement.ANY:
+            return bool(required & staff_certs)  # At least one in common
+
+        return False  # Fallback if service requirement is unknown
+    
+    def is_eligible_for_service(self, service_assignment: ServiceAssignment) -> bool:
+        """
+        Checks if the staff member is eligible to perform a given service assignment.
+        Eligibility is determined by:
+        1. Eligibility for the service type (SINGLE, MULTI_TASK, FIXED)
+        
+        Args:
+            service_assignment: The service assignment to check eligibility for
+        
+        Returns:
+            bool: True if staff is eligible, False otherwise
+        """
+
+        # Check if staff is eligible for this service type
+        if service_assignment.service_type not in self.eligible_for_services:
+            return False
+        
+        return True

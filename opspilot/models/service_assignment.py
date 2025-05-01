@@ -66,6 +66,10 @@ class ServiceAssignment(BaseModel):
         if self.service_type == ServiceType.MULTI_TASK:
             if self.multi_task_limit is None:
                 raise ValueError("multi_task_limit must be provided for MultiTask service type")
+        
+            # Multi task can only be used for flight zone services
+            if self.flight_number is None:
+                raise ValueError("service_type can be MULTI_TASK only for flight zone services")
         else:
             if self.multi_task_limit is not None:
                 raise ValueError("multi_task_limit can only be set for MultiTask service type")

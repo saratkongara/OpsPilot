@@ -77,28 +77,15 @@ class Scheduler:
         """Ensure staff only get assigned to services they're certified for."""
         start_time = time()
         logging.info("Adding certification constraints...")
-        
+
         for (staff_id, service_assignment_id), var in self.assignment_vars.items():
             staff = self.staff_map[staff_id]
             service_assignment = self.service_assignment_map[service_assignment_id]
             service = self.service_map[service_assignment.service_id]
-            
-            if service.certification_requirement == CertificationRequirement.ALL:
-                # Staff must have ALL required certifications
-                required_certs = set(service.certifications)
-                staff_certs = set(staff.certifications)
-                if not required_certs.issubset(staff_certs):
-                    self.model.Add(var == 0)
-            
-            elif service.certification_requirement == CertificationRequirement.ANY:
-                # Staff must have at least ONE required certification
-                has_any = any(
-                    cert_id in staff.certifications
-                    for cert_id in service.certifications
-                )
-                if not has_any:
-                    self.model.Add(var == 0)
-        
+
+            if not staff.is_certified_for_service(service):
+                self.model.Add(var == 0)
+
         logging.info(f"Added certification constraints in {time() - start_time:.2f}s")
 
     def add_staff_count_constraint(self) -> None:
