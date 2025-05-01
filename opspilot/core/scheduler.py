@@ -1,7 +1,7 @@
 from ortools.sat.python import cp_model
 from typing import Optional, List, Dict, Tuple
 from  opspilot.core.scheduler_result import SchedulerResult
-from opspilot.models import Staff, Service, Flight, ServiceAssignment, Settings, AssignmentStrategy, CertificationRequirement
+from opspilot.models import Staff, Service, Flight, ServiceAssignment, Settings, AssignmentStrategy, ServiceType
 from time import time
 from collections import defaultdict
 import logging
@@ -256,6 +256,66 @@ class Scheduler:
                 for nf_var in non_fixed_vars:
                     self.model.Add(nf_var == 0).OnlyEnforceIf(fixed_selected)
 
+    def add_multi_task_service_constraints(self):
+        """
+        Enforces:
+        - Staff cannot be assigned to mutually exclusive multi-task services on the same flight.
+        - The number of multi-task services per staff on a flight is bounded by multi_task_limit.
+        """
+        logging.debug("Adding multi-task service constraints...")
+
+        # Group multi-task service assignments by flight number
+        flight_service_map = defaultdict(list)
+        for sa in self.service_assignments:
+            if sa.service_type == ServiceType.MULTI_TASK and sa.flight_number:
+                flight_service_map[sa.flight_number].append(sa)
+
+        for staff in self.roster:
+            for flight_number, flight_services in flight_service_map.items():
+                # All multi-task service assignments on this flight that this staff might be assigned to
+                staff_services = [
+                    sa for sa in flight_services if (staff.id, sa.id) in self.assignment_vars
+                ]
+                staff_vars = {
+                    sa.id: self.assignment_vars[(staff.id, sa.id)] for sa in staff_services
+                }
+
+                self._apply_exclude_services_constraint(staff_services, staff_vars, staff.id, flight_number)
+                self._apply_multi_task_limit_constraint(staff_services, staff_vars, staff.id, flight_number)
+
+    def _apply_exclude_services_constraint(self, staff_services, staff_vars, staff_id, flight_number):
+        """
+        Ensure a staff is not assigned to two services that exclude each other on the same flight.
+        """
+        for i in range(len(staff_services)):
+            sa1 = staff_services[i]
+            for j in range(i + 1, len(staff_services)):
+                sa2 = staff_services[j]
+                if sa2.service_id in sa1.exclude_services or sa1.service_id in sa2.exclude_services:
+                    var1 = staff_vars[sa1.id]
+                    var2 = staff_vars[sa2.id]
+                    logging.debug(f"[Exclude] Staff {staff_id} - Flight {flight_number} - SA {sa1.id} ↔ SA {sa2.id}")
+                    self.model.Add(var1 + var2 <= 1)
+
+    def _apply_multi_task_limit_constraint(self, staff_services, staff_vars, staff_id, flight_number):
+        """
+        Ensure the number of multi-task services assigned to a staff on a single flight does not exceed the limit.
+        """
+        for sa in staff_services:
+            limit = sa.multi_task_limit
+            if limit is None:
+                continue
+
+            compatible_vars = [
+                staff_vars[other_sa.id]
+                for other_sa in staff_services
+                if other_sa.id != sa.id
+                and sa.service_id not in other_sa.exclude_services
+                and other_sa.service_id not in sa.exclude_services
+            ]
+            total = staff_vars[sa.id] + sum(compatible_vars)
+            logging.debug(f"[Limit] Staff {staff_id} - Flight {flight_number} - SA {sa.id} → Limit {limit}")
+            self.model.Add(total <= limit)
 
     def set_objective(self) -> None:
         """
@@ -336,6 +396,7 @@ class Scheduler:
         self.add_staff_availability_constraint()
         self.add_single_service_constraints()
         self.add_fixed_service_constraints()
+        self.add_multi_task_service_constraints()
         self.set_objective()
         
         status = self.solver.Solve(self.model)
