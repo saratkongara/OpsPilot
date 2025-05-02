@@ -1,7 +1,8 @@
 from ortools.sat.python import cp_model
 from typing import Optional, List, Dict, Tuple
 from  opspilot.core.scheduler_result import SchedulerResult
-from opspilot.models import Staff, Service, Flight, ServiceAssignment, Settings, AssignmentStrategy, ServiceType
+from opspilot.models import Staff, Service, Flight, ServiceAssignment, TravelTime, Settings, AssignmentStrategy, ServiceType
+from opspilot.services import OverlapDetectionService
 from time import time
 from collections import defaultdict
 import logging
@@ -17,7 +18,8 @@ class Scheduler:
         flights: List[Flight],
         service_assignments: List[ServiceAssignment],
         settings: Settings,
-        previous_assignments: Optional[Dict[Tuple[int, int], bool]] = None
+        travel_times: Optional[List[TravelTime]] = [],
+        previous_assignments: Optional[Dict[Tuple[int, int], bool]] = []
     ):
         """
         Initialize the scheduler with input data.
@@ -47,7 +49,19 @@ class Scheduler:
         self.staff_map = {staff.id: staff for staff in roster}
         self.service_assignment_map = {service_assignment.id: service_assignment for service_assignment in service_assignments}
         self.service_map = {service.id: service for service in services}
+        self.flight_map = {flight.number: flight for flight in flights}
+        self.travel_time_map = {(travel_time.from_location_id, travel_time.to_location_id): travel_time.travel_minutes for travel_time in travel_times}
+        
+        # Initialize overlap detector
+        overlap_detector = OverlapDetectionService(
+            service_assignments=self.service_assignments,
+            flight_map=self.flight_map,
+            travel_time_map=self.travel_time_map,
+            settings=self.settings
+        )
 
+        self.overlap_map = overlap_detector.detect_overlaps()
+        
         # Results and metrics
         self.solution: Dict[Tuple[int, int], bool] = {}
         self.solution_status: Optional[SchedulerResult] = None
@@ -125,7 +139,7 @@ class Scheduler:
             staff = next(staff for staff in self.roster if staff.id == staff_id)
             service_assignment = next(sa for sa in self.service_assignments if sa.id == service_assignment_id)
 
-            service_start_minutes, service_end_minutes = service_assignment.get_service_time_minutes(self.flights)
+            service_start_minutes, service_end_minutes = service_assignment.get_service_time_minutes(self.flight_map)
 
             if not staff.is_available_for_service(service_start_minutes, service_end_minutes):
                 logging.info(
@@ -134,6 +148,26 @@ class Scheduler:
                 )
                 self.model.Add(assignment_var == 0)
 
+
+    def add_service_transition_constraint(self) -> None:
+        """
+        Prevent staff from being assigned to overlapping service assignments
+        that do not allow sufficient travel and buffer time between them.
+        """
+        start_time = time()
+        logging.info("Adding service transition (overlap) constraints...")
+
+        # For each staff, ensure they are not assigned to overlapping services
+        for staff in self.roster:
+            for sa_id_a, conflicting_ids in self.overlap_map.items():
+                for sa_id_b in conflicting_ids:
+                    var_a = self.assignment_vars[(staff.id, sa_id_a)]
+                    var_b = self.assignment_vars[(staff.id, sa_id_b)]
+
+                    # Staff cannot be assigned to both conflicting services
+                    self.model.Add(var_a + var_b <= 1)
+
+        logging.info(f"Added service transition constraints in {time() - start_time:.2f}s")
 
     def add_single_service_constraints(self):
         """
@@ -383,6 +417,7 @@ class Scheduler:
         self.add_staff_eligibility_constraint()
         self.add_staff_count_constraint()
         self.add_staff_availability_constraint()
+        self.add_service_transition_constraint()
         self.add_single_service_constraints()
         self.add_fixed_service_constraints()
         self.add_multi_task_service_constraints()

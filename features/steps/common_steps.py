@@ -148,11 +148,11 @@ def step_impl(context):
     settings_table = context.table
     settings_row = settings_table[0] if settings_table else {}
 
-    overlap_tolerance_buffer = settings_row.get('overlap_tolerance_buffer', 15)
+    overlap_buffer_minutes = settings_row.get('overlap_buffer_minutes', 15)
     default_travel_time = settings_row.get('default_travel_time', 5)
     assignment_strategy = settings_row.get('assignment_strategy', 'Minimize Staff')
 
-    settings = Settings(overlap_tolerance_buffer=overlap_tolerance_buffer,
+    settings = Settings(overlap_buffer_minutes=overlap_buffer_minutes,
                         default_travel_time=default_travel_time,
                         assignment_strategy=assignment_strategy)
    

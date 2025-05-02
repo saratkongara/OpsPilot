@@ -13,11 +13,11 @@ from .service import Service
 from .settings import Settings
 from .shift import Shift
 from .staff import Staff
-
+from .travel_time import TravelTime
 
 __all__ = [
     'Certification', 'CertificationRequirement', 'EquipmentType',
     'LocationType', 'ServiceType', 'AssignmentStrategy', 'Flight',
     'Location', 'ServiceAssignment', 'Service',
-    'Settings', 'Shift', 'Staff'
+    'Settings', 'Shift', 'Staff', 'TravelTime',
 ]

@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, model_validator, field_validator
-from typing import List, Optional
+from typing import List, Dict, Optional
 from opspilot.models import ServiceType, EquipmentType, Flight
 from datetime import datetime, time
 
@@ -83,16 +83,21 @@ class ServiceAssignment(BaseModel):
 
         return self
 
-    def get_service_time_minutes(self, flights: List["Flight"]) -> tuple[int, int]:
+    def get_service_time_minutes(self, flight_map: Dict[str, Flight]) -> tuple[int, int]:
         """
         Returns (start_minutes, end_minutes) for this service assignment.
         Resolves either relative or absolute time based on flight zone or common zone service.
         """
         if self.flight_number:
-            flight = next(f for f in flights if f.number == self.flight_number)
+            flight = flight_map.get(self.flight_number, None)
+
+            if flight is None:
+                raise ValueError(f"Flight {self.flight_number} not found in flight map")
+            
             return flight.get_service_time_minutes(self.relative_start, self.relative_end)
         if self.start_minutes is not None and self.end_minutes is not None:
             return self.start_minutes, self.end_minutes
+        
         raise ValueError(f"Invalid time configuration for service assignment {self.id}")
     
     def __repr__(self):
