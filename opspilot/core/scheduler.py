@@ -153,18 +153,42 @@ class Scheduler:
         """
         Prevent staff from being assigned to overlapping service assignments
         that do not allow sufficient travel and buffer time between them.
+        Only apply to staff who are eligible for both services.
         """
         start_time = time()
         logging.info("Adding service transition (overlap) constraints...")
 
-        # For each staff, ensure they are not assigned to overlapping services
         for staff in self.roster:
             for sa_id_a, conflicting_ids in self.overlap_map.items():
+                service_assignment_a = self.service_assignment_map[sa_id_a]
+                service_a = self.service_map[service_assignment_a.service_id]
+
+                # Skip if staff cannot perform service A
+                service_a_start_minutes, service_a_end_minutes = service_assignment_a.get_service_time_minutes(self.flight_map)
+                if not (
+                    staff.is_available_for_service(service_a_start_minutes, service_a_end_minutes)
+                    and staff.is_certified_for_service(service_a)
+                    and staff.is_eligible_for_service(service_assignment_a)
+                ):
+                    continue
+
                 for sa_id_b in conflicting_ids:
+                    service_assignment_b = self.service_assignment_map[sa_id_b]
+                    service_b = self.service_map[service_assignment_b.service_id]
+
+                    # Skip if staff cannot perform service B
+                    service_b_start_minutes, service_b_end_minutes = service_assignment_b.get_service_time_minutes(self.flight_map)
+
+                    if not (
+                        staff.is_available_for_service(service_b_start_minutes, service_b_end_minutes)
+                        and staff.is_certified_for_service(service_b)
+                        and staff.is_eligible_for_service(service_assignment_b)
+                    ):
+                        continue
+
                     var_a = self.assignment_vars[(staff.id, sa_id_a)]
                     var_b = self.assignment_vars[(staff.id, sa_id_b)]
 
-                    # Staff cannot be assigned to both conflicting services
                     self.model.Add(var_a + var_b <= 1)
 
         logging.info(f"Added service transition constraints in {time() - start_time:.2f}s")
