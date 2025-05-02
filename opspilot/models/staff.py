@@ -1,6 +1,5 @@
 from pydantic import BaseModel
 from typing import List, Optional
-from datetime import datetime
 from opspilot.models import Shift, Service, CertificationRequirement, ServiceType, ServiceAssignment
 
 class Staff(BaseModel):
@@ -65,3 +64,18 @@ class Staff(BaseModel):
             return False
         
         return True
+
+    def can_perform_service(self, service: Service, service_start_minutes: int, service_end_minutes: int, service_assignment: ServiceAssignment) -> bool:
+        """
+        Checks if the staff can perform a given service based on availability, certification and eligibility.
+        Args:
+            service: The service to check
+            service_start_minutes: Service start time in minutes from midnight
+            service_end_minutes: Service end time in minutes from midnight
+            service_assignment: The service assignment to check eligibility for
+        Returns:
+            bool: True if staff can perform the service, False otherwise
+        """
+        return (self.is_available_for_service(service_start_minutes, service_end_minutes) and
+                self.is_certified_for_service(service) and
+                self.is_eligible_for_service(service_assignment))

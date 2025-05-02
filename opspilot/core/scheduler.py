@@ -165,11 +165,7 @@ class Scheduler:
 
                 # Skip if staff cannot perform service A
                 service_a_start_minutes, service_a_end_minutes = service_assignment_a.get_service_time_minutes(self.flight_map)
-                if not (
-                    staff.is_available_for_service(service_a_start_minutes, service_a_end_minutes)
-                    and staff.is_certified_for_service(service_a)
-                    and staff.is_eligible_for_service(service_assignment_a)
-                ):
+                if not staff.can_perform_service(service_a, service_a_start_minutes, service_a_end_minutes, service_assignment_a):
                     continue
 
                 for sa_id_b in conflicting_ids:
@@ -178,12 +174,7 @@ class Scheduler:
 
                     # Skip if staff cannot perform service B
                     service_b_start_minutes, service_b_end_minutes = service_assignment_b.get_service_time_minutes(self.flight_map)
-
-                    if not (
-                        staff.is_available_for_service(service_b_start_minutes, service_b_end_minutes)
-                        and staff.is_certified_for_service(service_b)
-                        and staff.is_eligible_for_service(service_assignment_b)
-                    ):
+                    if not staff.can_perform_service(service_b, service_b_start_minutes, service_b_end_minutes, service_assignment_b):
                         continue
 
                     var_a = self.assignment_vars[(staff.id, sa_id_a)]

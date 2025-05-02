@@ -1,5 +1,5 @@
 from pydantic import BaseModel, field_validator
-from datetime import datetime, time, timedelta
+from datetime import datetime, time
 
 class Flight(BaseModel):
     number: str  # e.g., "AA123"
