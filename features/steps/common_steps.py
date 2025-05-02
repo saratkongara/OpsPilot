@@ -202,6 +202,7 @@ def step_impl(context):
         services=context.services,
         flights=context.flights,
         service_assignments=context.service_assignments,
+        travel_times=context.travel_times,
         settings=context.settings
     )
     context.scheduler.run()

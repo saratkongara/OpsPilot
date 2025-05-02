@@ -50,7 +50,7 @@ class Scheduler:
         self.service_assignment_map = {service_assignment.id: service_assignment for service_assignment in service_assignments}
         self.service_map = {service.id: service for service in services}
         self.flight_map = {flight.number: flight for flight in flights}
-        self.travel_time_map = {(travel_time.from_location_id, travel_time.to_location_id): travel_time.travel_minutes for travel_time in travel_times}
+        self.travel_time_map = {(travel_time.origin_location_id, travel_time.destination_location_id): travel_time.travel_minutes for travel_time in travel_times}
         
         # Initialize overlap detector
         overlap_detector = OverlapDetectionService(

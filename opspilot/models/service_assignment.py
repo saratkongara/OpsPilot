@@ -10,11 +10,12 @@ class ServiceAssignment(BaseModel):
     staff_count: int  # Number of staff required for this service assignment
     location_id: int  # Location where the service will be performed
 
-    # Optional fields only for flight-related services
+    # Optional fields only for flight zone services
     flight_number: Optional[str] = None  # Flight number (e.g., "AA123")
     relative_start: Optional[str] = None  # Start time relative to flight arrival or departure time (e.g., "A+10")
     relative_end: Optional[str] = None # End time relative to flight arrival or departure time (e.g., "D-5")
 
+    # Optional fields for common zone services
     start_time: Optional[time] = None
     end_time: Optional[time] = None
 
