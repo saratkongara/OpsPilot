@@ -98,7 +98,7 @@ Feature: Service Transition Constraints
     And the following flights exist:
       | number | arrival_time | departure_time |
       | FL301  | 08:00        | 09:00          |
-      | FL302  | 09:15        | 10:15          |
+      | FL302  | 09:00        | 10:15          |
 
     And the following locations exist:
       | id | name   | location_type |
@@ -107,13 +107,17 @@ Feature: Service Transition Constraints
 
     And the following travel times exist:
       | origin_location_id | destination_location_id | travel_minutes |
-      | 1                  | 2                       | 5              |
-      | 2                  | 1                       | 5              |
+      | 1                  | 2                       | 25             |
+      | 2                  | 1                       | 25             |
 
     And the following service assignments exist:
       | id | service_id | staff_count | location_id | flight_number | relative_start | relative_end | service_type |
       | 1  | 1          | 1           | 1           | FL301         | A+10           | A+40         | F            |
-      | 2  | 1          | 1           | 2           | FL302         | A+10           | A+40         | F            |
+      | 2  | 1          | 1           | 2           | FL302         | A              | A+40         | F            |
+
+    And the following settings exist:
+      | overlap_buffer_minutes | default_travel_time |
+      | 5                      | 15                  |
 
     When the scheduler runs
 
