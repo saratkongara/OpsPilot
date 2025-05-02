@@ -1,6 +1,7 @@
 from behave import given, when, then
 from opspilot.models import Staff, Service, Flight, Location, ServiceAssignment, ServiceType
-from opspilot.models import EquipmentType, Shift, CertificationRequirement, LocationType, Settings
+from opspilot.models import EquipmentType, Shift, CertificationRequirement, Settings, TravelTime
+from opspilot.services import OverlapDetectionService
 from opspilot.core.scheduler import Scheduler
 import ast
 
@@ -80,6 +81,19 @@ def setup_locations(context, locations_table):
                 parent_id=int(row['parent_id']) if row.get('parent_id') else None,
             )
         )
+
+def setup_travel_times(context, travel_times_table):
+    context.travel_times = []
+
+    for row in travel_times_table:
+        context.travel_times.append(
+            TravelTime(
+                origin_location_id=int(row['origin_location_id']),
+                destination_location_id=int(row['destination_location_id']),
+                travel_minutes=int(row['travel_minutes'])
+            )
+        )
+
 def setup_service_assignments(context, assignments_table):
     context.service_assignments = []
 
@@ -111,6 +125,24 @@ def setup_service_assignments(context, assignments_table):
             )
         )
 
+def setup_settings(context, settings_table):
+    settings_row = settings_table[0] if settings_table else {}
+    context.settings = Settings(
+        overlap_buffer_minutes=int(settings_row.get('overlap_buffer_minutes', 10)),
+        default_travel_time=int(settings_row.get('default_travel_time', 10)),
+        assignment_strategy=settings_row.get('assignment_strategy', 'Balance Workload')
+    )
+
+def setup_flight_map(context):
+    context.flight_map = {}
+    for flight in context.flights:
+        context.flight_map[flight.number] = flight
+
+def setup_travel_time_map(context):
+    context.travel_time_map = {}
+    for travel_time in context.travel_times:
+        context.travel_time_map[(travel_time.origin_location_id, travel_time.destination_location_id)] = travel_time.travel_minutes
+
 @given('the following staff exists')
 def step_impl(context):
     setup_staff(context, context.table)
@@ -127,43 +159,51 @@ def step_impl(context):
 def step_impl(context):
     setup_locations(context, context.table)
 
+@given('the following travel times exist')
+def step_impl(context):
+    setup_travel_times(context, context.table)
+
 @given('the following service assignments exist')
 def step_impl(context):
     setup_service_assignments(context, context.table)
 
+@given('the following settings exist')
+def step_impl(context):
+    setup_settings(context, context.table)
+
+@when('the overlap detection service runs')
+def step_impl(context):
+    setup_flight_map(context)
+    setup_travel_time_map(context)
+
+    overlap_service = OverlapDetectionService(
+        service_assignments=context.service_assignments,
+        flight_map=context.flight_map,
+        travel_time_map=context.travel_time_map,
+        settings=context.settings
+    )
+    context.overlap_map = overlap_service.detect_overlaps()
+
+@then('the following overlaps should be detected')
+def step_impl(context):
+    for row in context.table:
+        sa_id = int(row['service_assignment_id'])
+        expected_overlaps = ast.literal_eval(row['overlapping_service_assignment_ids'])
+        actual_overlaps = context.overlap_map.get(sa_id, [])
+        assert set(actual_overlaps) == set(expected_overlaps), (
+            f"Service {sa_id} overlap mismatch. "
+            f"Expected: {expected_overlaps}, Actual: {actual_overlaps}"
+        )
+
 @when('the scheduler runs')
 def step_impl(context):
-    settings = Settings()
     context.scheduler = Scheduler(
         roster=context.staff,
         services=context.services,
         flights=context.flights,
         service_assignments=context.service_assignments,
-        settings=settings
+        settings=context.settings
     )
-    context.scheduler.run()
-
-@when('the scheduler runs with settings')
-def step_impl(context):
-    settings_table = context.table
-    settings_row = settings_table[0] if settings_table else {}
-
-    overlap_buffer_minutes = settings_row.get('overlap_buffer_minutes', 15)
-    default_travel_time = settings_row.get('default_travel_time', 5)
-    assignment_strategy = settings_row.get('assignment_strategy', 'Minimize Staff')
-
-    settings = Settings(overlap_buffer_minutes=overlap_buffer_minutes,
-                        default_travel_time=default_travel_time,
-                        assignment_strategy=assignment_strategy)
-   
-    context.scheduler = Scheduler(
-        roster=context.staff,
-        services=context.services,
-        flights=context.flights,
-        service_assignments=context.service_assignments,
-        settings=settings
-    )
-
     context.scheduler.run()
 
 @then('the assignments should be')

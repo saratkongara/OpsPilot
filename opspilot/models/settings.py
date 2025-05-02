@@ -12,6 +12,6 @@ class Settings(BaseModel):
                              no location-to-location travel time is specified.
         assignment_strategy: Strategy for optimizing staff assignments.
     """
-    overlap_buffer_minutes: int = Field(default=15, ge=0, description="Maximum allowed overlap time in minutes")
+    overlap_buffer_minutes: int = Field(default=10, ge=0, description="Maximum allowed overlap time in minutes")
     default_travel_time: int = Field(default=10, gt=0, description="Default travel time in minutes")
     assignment_strategy: AssignmentStrategy = AssignmentStrategy.BALANCE_WORKLOAD

@@ -72,6 +72,6 @@ class OverlapDetectionService:
                 # Conflict if adjusted end of A overlaps start of B
                 if adjusted_a_end > b_start:
                     overlap_map[sa_a.id].append(sa_b.id)
-                    logging.debug(f"Overlap detected: {sa_a.id} overlaps with {sa_b.id}")
+                    logging.info(f"Overlap detected: {sa_a.id} overlaps with {sa_b.id}")
         
         return dict(overlap_map)

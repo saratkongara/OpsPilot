@@ -23,9 +23,11 @@ Feature: Multi Staff Assignment
       | 1  | 1          | 1           | 1           | 08:30      | 09:30    | S            |
       | 2  | 2          | 1           | 1           | 09:45      | 10:45    | S            |
 
-    When the scheduler runs with settings:
+    And the following settings exist:
       | assignment_strategy |
       | Balance Workload    |
+
+    When the scheduler runs
     
     Then the assignments should be:
       | staff_id | assigned_service_ids |
