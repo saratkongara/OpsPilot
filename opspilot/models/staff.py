@@ -34,7 +34,6 @@ class Staff(BaseModel):
 
         return False
     
-
     def is_certified_for_service(self, service: Service) -> bool:
         """
         Checks if the staff meets the certification requirements to perform the given service.
@@ -54,7 +53,7 @@ class Staff(BaseModel):
         """
         Checks if the staff member is eligible to perform a given service assignment.
         Eligibility is determined by:
-        1. Eligibility for the service type (SINGLE, MULTI_TASK, FIXED)
+        1. Eligibility based on the service type (SINGLE, MULTI_TASK, FIXED)
         
         Args:
             service_assignment: The service assignment to check eligibility for
@@ -62,8 +61,6 @@ class Staff(BaseModel):
         Returns:
             bool: True if staff is eligible, False otherwise
         """
-
-        # Check if staff is eligible for this service type
         if service_assignment.service_type not in self.eligible_for_services:
             return False
         

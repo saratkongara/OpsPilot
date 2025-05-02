@@ -125,19 +125,8 @@ class Scheduler:
             staff = next(staff for staff in self.roster if staff.id == staff_id)
             service_assignment = next(sa for sa in self.service_assignments if sa.id == service_assignment_id)
 
-            # If it's flight-related, resolve using relative_start and relative_end
-            if service_assignment.flight_number:
-                flight = next(flight for flight in self.flights if flight.number == service_assignment.flight_number)
-                service_start_minutes, service_end_minutes = flight.get_service_time_minutes(
-                    service_assignment.relative_start,
-                    service_assignment.relative_end
-                )
-            else:
-                # Non-flight services (like Common Zone), use absolute start_time and end_time
-                service_start_minutes = service_assignment.start_minutes
-                service_end_minutes = service_assignment.end_minutes
+            service_start_minutes, service_end_minutes = service_assignment.get_service_time_minutes(self.flights)
 
-            # Check staff availability
             if not staff.is_available_for_service(service_start_minutes, service_end_minutes):
                 logging.info(
                     f"Staff {staff_id} not available for service_assignment {service_assignment_id} "
