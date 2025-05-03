@@ -95,10 +95,10 @@ Feature: Fixed Service Assignment in FlightZone
 
     And the following service assignments exist:
       | id | service_id | staff_count | location_id | flight_number | relative_start | relative_end | service_type | priority |
-      | 1  | 1          | 1           | 1           | FL300         | A+10           | A+30         | F            | 4.0      |
-      | 2  | 2          | 1           | 1           | FL300         | D-40           | D-10         | F            | 5.0      |
-      | 3  | 1          | 1           | 1           | FL301         | A+10           | A+30         | F            | 7.0      |
-      | 4  | 2          | 1           | 1           | FL301         | D-40           | D-10         | F            | 6.0      |
+      | 1  | 1          | 1           | 1           | FL300         | A+10           | A+30         | F            | 1.0      |
+      | 2  | 2          | 1           | 1           | FL300         | D-40           | D-10         | F            | 2.0      |
+      | 3  | 1          | 1           | 1           | FL301         | A+10           | A+30         | F            | 3.0      |
+      | 4  | 2          | 1           | 1           | FL301         | D-40           | D-10         | F            | 4.0      |
 
     When the scheduler runs
 

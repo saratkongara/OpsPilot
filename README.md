@@ -1,160 +1,168 @@
-# OpsPilot
-Ground Staff Allocation Engine using Google OR tools to handle constraints and optimization requirements
+# ✈️ Ground Staff Scheduling Optimizer
+
+This project implements a **strategy-aware, priority-driven optimization engine** for assigning airport ground staff to service tasks across flights. It uses **Google OR-Tools** to maximize service coverage while respecting flight priorities, staff preferences, and operational strategies like minimizing staff count or balancing workload.
+
+---
+
+## 🚀 Overview
+
+Airports operate under strict timing constraints, and multiple below-the-wing services must be handled for each flight (e.g., refueling, cleaning, baggage loading). Each service:
+
+- Has a **specific time window** based on flight schedule (e.g., A+5 to D-10).
+- Requires **certified staff** with the right qualifications.
+- Can have **varying urgency** based on flight type and service criticality.
+
+This optimizer assigns staff to these services while maximizing overall efficiency and honoring configurable business strategies.
 
 ---
 
 ## 🎯 Optimization Objective: Strategy-Aware, Priority-Driven Assignment
 
-The core goal of this scheduling optimizer is to **maximize total assignments** while favoring staff and service combinations that align with business priorities and operational preferences. The objective is dynamically adjusted based on a configurable strategy and incorporates both **service-level priorities** and **staff-based preferences**.
-
----
+The core goal is to **maximize total service coverage**, while factoring in business priorities and staff preferences.
 
 ### ✅ Primary Goal: Maximize Total Assignments
-At the heart of the objective function is the idea that every service assignment must be covered if possible. So the first priority is:
 
-- **Maximize the total number of valid staff-to-service assignments.**
+Ensure the highest number of valid assignments possible:
 
-This ensures high utilization of staff and better service coverage.
+- `total_assignments = sum(staff_service_assignment_vars)`
+
+This is the foundation of the optimization.
 
 ---
 
 ### ✈️ Service-Level Prioritization
-Each `ServiceAssignment` carries a `priority` score, which is a combined value of:
 
-- **Flight priority**: e.g., international departures may have higher urgency.
-- **Service priority**: e.g., fueling or boarding may be more time-critical than cabin cleaning.
+Each `ServiceAssignment` has a `priority` value (e.g., `12.05`) where:
 
-These priorities are combined as a float (e.g., `22.05`), and **lower values are more important**. To reward high-priority assignments, the objective:
+- **Lower priority value = more urgent or important.**
+- Combines:
+  - **Flight priority** (e.g., international > domestic).
+  - **Service priority** (e.g., fueling > toilet cleaning).
 
-- Applies a **negative weighting to the priority**: lower priorities contribute **more** to the score.
+To favor high-priority tasks:
 
 ```python
 priority_score = -int(service_assignment.priority * 1000)
 ```
 
+This ensures that lower values (i.e., more critical services) contribute more positively to the objective function.
+
 ---
 
 ### 👩‍🔧 Staff-Based Prioritization
-When multiple staff are eligible for the same assignment, the optimizer prefers staff based on the following hierarchy:
 
-#### 1. 🎯 `priority_service_id` Match
-Each staff member may indicate a strong preference for a specific `service_id` (e.g., they specialize in refueling). When such a match occurs:
+The optimizer rewards desirable staff-service matches:
 
-- The assignment receives a **large bonus**, encouraging the optimizer to honor the staff's service preference **if possible**.
+#### 1. 🎯 Preferred Service Match (`priority_service_id`)
+If a staff member prefers a specific service (`priority_service_id`):
 
-#### 2. 🧭 Rank Level (Seniority)
-A staff member’s `rank_level` reflects their seniority or expertise. Lower values are better.
+- A large **bonus** encourages satisfying that preference.
 
-- Among equally qualified staff, those with **lower rank levels are preferred**, adding subtle bias toward more experienced workers.
+#### 2. 🧭 Staff Seniority (`rank_level`)
+Staff with lower `rank_level` are more senior:
+
+- Slight preference is given to senior workers when otherwise equal.
 
 #### 3. 🧰 Fewer Certifications
-Staff with fewer certifications are **less flexible**, so it’s efficient to assign them where possible, preserving versatile staff for complex roles.
+Staff with fewer certifications are **less flexible**:
 
-- Staff with **fewer certifications get a small bonus** to increase the likelihood of assignment.
+- Assigning them early helps preserve versatile staff for later.
+- Slight bonus for such assignments.
 
 ---
 
-### 🧠 Strategy-Driven Variants
+## 🧠 Assignment Strategies
 
-The optimizer supports multiple strategies defined via `AssignmentStrategy`, which adjust secondary goals:
+The optimizer supports multiple strategies via `AssignmentStrategy`:
 
-#### **`MINIMIZE_STAFF` Strategy**
-- Main objective: **Assign as many services as possible**.
-- Then: **Prefer higher-priority services and staff preferences**.
-- Finally: **Minimize the number of staff used**, increasing operational efficiency.
+### `MINIMIZE_STAFF`
+- Goal: Cover all services using the **fewest number of staff**.
+- Reduces operational cost and overstaffing.
 
 ```python
-self.model.Maximize(
+model.Maximize(
     1_000_000_000 * total_assignments +
-    sum(weighted_objective_terms) -
+    sum(weighted_scores) -
     total_staff_used
 )
 ```
 
-#### **`BALANCE_WORKLOAD` Strategy**
-- Main objective: **Assign as many services as possible**.
-- Then: **Prefer higher-priority services and staff preferences**.
-- Finally: **Encourage broader staff usage** to balance workload and reduce burnout.
+### `BALANCE_WORKLOAD`
+- Goal: Cover all services while **distributing work more evenly**.
+- Reduces burnout and increases fairness.
 
 ```python
-self.model.Maximize(
+model.Maximize(
     1_000_000_000 * total_assignments +
-    sum(weighted_objective_terms) +
+    sum(weighted_scores) +
     total_staff_used
 )
 ```
 
+> Staff usage is tracked via:
+```python
+staff_used[staff_id] = max(assignments involving staff_id)
+```
+
 ---
 
-### ⚙️ Summary of Objective Weights
+## ⚙️ Objective Function Weights
+
 | Component                   | Weight        | Purpose                                                |
 |----------------------------|---------------|--------------------------------------------------------|
 | Total assignments          | `1_000_000_000`| Most important: cover all services                     |
 | Priority match bonus       | `10_000_000`   | Strongly prefer staff for their chosen service         |
 | Service priority           | `10_000`       | Prefer high-priority flights and services              |
 | Staff rank level           | `1_000`        | Prefer senior staff when equally qualified             |
-| Fewer certifications       | `1`            | Prefer less flexible staff for simpler tasks           |
-| Staff used (minimize/max) | `±1`           | Either minimize or balance number of staff used        |
+| Fewer certifications       | `10`           | Prefer less flexible staff for simpler tasks           |
+| Staff used (min/max)       | `±1`           | Encourage staff efficiency or fairness based on strategy|
 
-> You can tweak these weights based on real-world constraints, KPIs, or business policies.
+You can tune these weights to match business policies or operational KPIs.
 
 ---
 
-                         +--------------------------+
-                         |   Start Optimization     |
-                         +--------------------------+
-                                     |
-                                     v
-                     +-------------------------------+
-                     |  Generate assignment vars      |
-                     |  (staff_id, service_id) → Bool |
-                     +-------------------------------+
-                                     |
-                                     v
-                   +-----------------------------------+
-                   | Compute Total Assignments         |
-                   |  total_assignments = sum(vars)    |
-                   +-----------------------------------+
-                                     |
-                                     v
-                   +------------------------------------+
-                   | Compute Staff Usage                |
-                   |  staff_used[staff_id] = max(assignments) |
-                   +------------------------------------+
-                                     |
-                                     v
-            +----------------------------------------------+
-            | Score each assignment with priority weights  |
-            | - Service priority (lower is better)         |
-            | - Staff preference match (priority_service)  |
-            | - Rank level (seniority)                     |
-            | - Fewer certifications                       |
-            +----------------------------------------------+
-                                     |
-                                     v
-              +--------------------------------------+
-              | Apply Strategy Decision Branch:      |
-              |   - MINIMIZE_STAFF                   |
-              |   - BALANCE_WORKLOAD                 |
-              +--------------------------------------+
-                    /                                      \
-                   /                                        \
-   +-------------------------------+         +-------------------------------+
-   | MINIMIZE_STAFF                |         | BALANCE_WORKLOAD              |
-   | ----------------------------  |         | ----------------------------  |
-   | Maximize:                     |         | Maximize:                     |
-   |   1. Total Assignments        |         |   1. Total Assignments        |
-   |   2. Priority score           |         |   2. Priority score           |
-   |   3. (-) Staff used count     |         |   3. (+) Staff used count     |
-   +-------------------------------+         +-------------------------------+
-                    \                                      /
-                     \                                    /
-                      \                                  /
-                       +-------------------------------+
-                       |      Set final objective      |
-                       +-------------------------------+
-                                     |
-                                     v
-                        +---------------------------+
-                        |     Solve with OR-Tools    |
-                        +---------------------------+
+## 🧩 Optimization Flow
+
+```mermaid
+flowchart TD
+    A[Start Optimization]
+    B[Generate Assignment Variables<br/>(staff_id, service_id) → Bool]
+    C[Compute Total Assignments]
+    D[Compute Staff Usage]
+    E[Score Assignments<br/>- Service priority<br/>- Staff preference<br/>- Rank level<br/>- Certifications]
+    F{Select Strategy}
+    G[MINIMIZE_STAFF<br/>Maximize:<br/>+ Assignments<br/>+ Priority Score<br/>- Staff Used]
+    H[BALANCE_WORKLOAD<br/>Maximize:<br/>+ Assignments<br/>+ Priority Score<br/>+ Staff Used]
+    I[Set Final Objective]
+    J[Solve with OR-Tools]
+
+    A --> B --> C --> D --> E --> F
+    F --> G --> I
+    F --> H --> I
+    I --> J
+```
+
+---
+
+## ✅ Tests
+
+Tests are written using `behave` and structured around constraint expectations and strategy outcomes.
+
+```bash
+behave
+```
+
+---
+
+## 📚 References
+
+- [Google OR-Tools](https://developers.google.com/optimization)
+- Airport Ground Operations Standards (IATA/ACI)
+
+---
+
+## 🧠 Contributing
+
+Contributions are welcome! Please file issues for bugs or enhancement requests, or submit a PR with clear explanations and test coverage.
+
+---

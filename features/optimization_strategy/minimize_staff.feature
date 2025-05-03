@@ -21,7 +21,7 @@ Feature: Multi Staff Assignment
     And the following service assignments exist:
       | id | service_id | staff_count | location_id | start_time | end_time | service_type |
       | 1  | 1          | 1           | 1           | 08:30      | 09:30    | S            |
-      | 2  | 2          | 1           | 1           | 09:45      | 10:45    | S            |
+      | 2  | 2          | 1           | 1           | 10:00      | 10:45    | S            |
 
     And the following settings exist:
       | assignment_strategy |

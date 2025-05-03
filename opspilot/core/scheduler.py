@@ -357,70 +357,136 @@ class Scheduler:
 
     def set_objective(self) -> None:
         """
-        Set the optimization objective based on the strategy defined in settings:
+        Set the optimization objective based on the strategy:
         - MINIMIZE_STAFF: Use the fewest number of staff while covering all service assignments.
-        - BALANCE_WORKLOAD: Distribute assignments evenly across all staff.
+        - BALANCE_WORKLOAD: Distribute assignments based on staff priorities and traits.
+        """
+        strategy = self.settings.assignment_strategy
+
+        if strategy == AssignmentStrategy.MINIMIZE_STAFF:
+            self._set_minimize_staff_objective()
+        elif strategy == AssignmentStrategy.BALANCE_WORKLOAD:
+            self._set_balance_workload_objective()
+        else:
+            raise ValueError(f"Unknown assignment strategy: {strategy}")
+
+    def _set_minimize_staff_objective(self):
+        """
+        Objective:
+        - Maximize total assignments made (most important)
+        - Prefer assignments with lower priority values (i.e., A-10 is better than D+5)
+        - Use the minimum number of distinct staff
+
+        This strategy is suitable when reducing total active staff is important — e.g., for lean scheduling.
         """
 
-        # Create a binary variable: whether a staff is used (i.e., assigned at least once)
+        # Create a binary variable for whether each staff is used at least once
         staff_used = {
             staff.id: self.model.NewBoolVar(f"staff_used_{staff.id}")
             for staff in self.roster
         }
 
-        # Ensure that staff_used is 1 if any assignment is made
+        # staff_used[staff_id] = 1 if the staff is assigned to any service
         for staff in self.roster:
             staff_assignments = [
                 var for (staff_id, _), var in self.assignment_vars.items()
                 if staff_id == staff.id
             ]
-
-            # If staff has any assignment, staff_used[staff_id] == 1
             self.model.AddMaxEquality(staff_used[staff.id], staff_assignments)
-                
-        # Total number of staff used
+
+        # Total number of distinct staff used
         total_staff_used = self.model.NewIntVar(0, len(self.roster), "total_staff_used")
         self.model.Add(total_staff_used == sum(staff_used.values()))
 
-        # Total number of assignments made
+        # Total number of assignments actually made
         assignment_var_list = list(self.assignment_vars.values())
         total_assignments = self.model.NewIntVar(0, len(assignment_var_list), "total_assignments")
         self.model.Add(total_assignments == sum(assignment_var_list))
 
-        # Priority score: lower priority values (like 22.3 > 44.12) are better → negative weighting
+        # Compute a total score from service assignment priorities
+        # Lower priority values are better, so we negate the score
         priority_score = sum(
-            -int(self.service_assignment_map[service_assignment_id].priority * 1000) * var
-            for (_, service_assignment_id), var in self.assignment_vars.items()
+            -int(self.service_assignment_map[sa_id].priority * 1000) * var
+            for (_, sa_id), var in self.assignment_vars.items()
         )
 
-        # Strategy-driven objective
-        strategy = self.settings.assignment_strategy
+        # Maximize assignments first, then priority score, then minimize staff used
+        self.model.Maximize(
+            1_000_000_000 * total_assignments +  # Primary: complete as many assignments as possible
+            1_000 * priority_score -            # Secondary: favor lower-priority services
+            total_staff_used                    # Tertiary: minimize how many staff are activated
+        )
 
-        if strategy == AssignmentStrategy.MINIMIZE_STAFF:
-            self.model.Maximize(
-                1_000_000_000 * total_assignments +   # Maximize total assignments (most important)
-                1_000 * priority_score -              # Favor lower priority values
-                total_staff_used                      # Then minimize staff used
+    def _set_balance_workload_objective(self):
+        """
+        Objective:
+        - Maximize total assignments made (most important)
+        - Favor staff whose priority_service matches the assignment
+        - Favor staff with lower rank_level (assumed more junior)
+        - Favor staff with fewer certifications (to preserve multi-skilled staff for harder tasks)
+        - Slightly prefer involving more staff to balance load
+
+        This strategy aims to balance the workload fairly across staff, incorporating traits and preferences.
+        """
+
+        # Binary indicator for whether a staff member is used
+        staff_used = {
+            staff.id: self.model.NewBoolVar(f"staff_used_{staff.id}")
+            for staff in self.roster
+        }
+
+        # staff_used[staff_id] = 1 if any assignment is made
+        for staff in self.roster:
+            staff_assignments = [
+                var for (staff_id, _), var in self.assignment_vars.items()
+                if staff_id == staff.id
+            ]
+            self.model.AddMaxEquality(staff_used[staff.id], staff_assignments)
+
+        # Total staff used
+        total_staff_used = self.model.NewIntVar(0, len(self.roster), "total_staff_used")
+        self.model.Add(total_staff_used == sum(staff_used.values()))
+
+        # Total assignments made
+        assignment_var_list = list(self.assignment_vars.values())
+        total_assignments = self.model.NewIntVar(0, len(assignment_var_list), "total_assignments")
+        self.model.Add(total_assignments == sum(assignment_var_list))
+
+        # Per-assignment score considering staff traits and service properties
+        objective_terms = []
+        for (staff_id, sa_id), var in self.assignment_vars.items():
+            sa = self.service_assignment_map[sa_id]
+            staff = self.staff_map[staff_id]
+
+            # Lower priority value = higher preference
+            priority_score = -int(sa.priority * 1000)
+
+            # Big bonus for assigning staff to their preferred service
+            priority_match_bonus = 1 if staff.priority_service_id == sa.service_id else 0
+
+            # Lower rank_level is better
+            rank_score = -1 * (staff.rank_level or 0)
+
+            # Fewer certifications is better (preserve multi-skilled staff)
+            cert_score = -len(staff.certifications)
+
+            # Combine weights (tunable)
+            combined_score = (
+                10_000_000 * priority_match_bonus +
+                10_000 * priority_score +
+                1_000 * rank_score +
+                10 * cert_score
             )
-        elif strategy == AssignmentStrategy.BALANCE_WORKLOAD:
-            self.model.Maximize(
-                1_000_000_000 * total_assignments +   # Maximize total assignments (most important)
-                1_000 * priority_score +              # Favor lower priority values
-                total_staff_used                      # Then maximize staff used
-            )  
-          
-        # Now, define the objective depending on the strategy
-        # strategy = self.settings.assignment_strategy
-        # if strategy == AssignmentStrategy.MINIMIZE_STAFF:
-        #     # Maximize total assignments first, then minimize staff used
-        #     self.model.Maximize(
-        #         1000 * total_assignments - total_staff_used
-        #     )
-        # elif strategy == AssignmentStrategy.BALANCE_WORKLOAD:
-        #     # Maximize total assignments and maximize staff used
-        #     self.model.Maximize(
-        #         1000 * total_assignments + total_staff_used
-        #     )    
+
+            objective_terms.append(combined_score * var)
+
+        # Maximize assignments first, then distribute based on preferences and traits,
+        # and finally slightly prefer involving more staff (to balance workload)
+        self.model.Maximize(
+            1_000_000_000 * total_assignments +  # Primary: maximize service coverage
+            sum(objective_terms) +               # Secondary: score based on preferences and traits
+            total_staff_used                     # Tertiary: prefer spreading load across staff
+        )
 
     def run(self) -> SchedulerResult:
         """Run the optimization and store results."""
