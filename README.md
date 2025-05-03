@@ -121,26 +121,22 @@ You can tune these weights to match business policies or operational KPIs.
 
 ---
 
-## 🧩 Optimization Flow
+## 🧩 Optimization Flow (Text Summary)
 
-```mermaid
-flowchart TD
-    A[Start Optimization]
-    B[Generate Assignment Variables<br/>(staff_id, service_id) → Bool]
-    C[Compute Total Assignments]
-    D[Compute Staff Usage]
-    E[Score Assignments<br/>- Service priority<br/>- Staff preference<br/>- Rank level<br/>- Certifications]
-    F{Select Strategy}
-    G[MINIMIZE_STAFF<br/>Maximize:<br/>+ Assignments<br/>+ Priority Score<br/>- Staff Used]
-    H[BALANCE_WORKLOAD<br/>Maximize:<br/>+ Assignments<br/>+ Priority Score<br/>+ Staff Used]
-    I[Set Final Objective]
-    J[Solve with OR-Tools]
-
-    A --> B --> C --> D --> E --> F
-    F --> G --> I
-    F --> H --> I
-    I --> J
-```
+1. Start optimization.
+2. Generate boolean assignment variables for each (staff_id, service_assignment_id).
+3. Compute total number of assignments.
+4. Track whether each staff member is used.
+5. Score each assignment based on:
+   - Service priority (lower = better)
+   - Staff's preferred service match
+   - Staff seniority (lower rank_level = better)
+   - Number of certifications (fewer = better)
+6. Choose strategy:
+   - `MINIMIZE_STAFF`: Cover services with fewest staff.
+   - `BALANCE_WORKLOAD`: Cover services while distributing workload evenly.
+7. Set objective function accordingly.
+8. Solve the model with Google OR-Tools.
 
 ---
 
