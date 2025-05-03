@@ -121,7 +121,7 @@ You can tune these weights to match business policies or operational KPIs.
 
 ---
 
-## 🧩 Optimization Flow (Text Summary)
+## 🧩 Optimization Flow
 
 1. Start optimization.
 2. Generate boolean assignment variables for each (staff_id, service_assignment_id).
