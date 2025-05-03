@@ -63,3 +63,7 @@ Feature: Staff Eligibility Constraint
       | 1        | []                   |
       | 2        | []                   |
       | 3        | []                   |
+
+    And the service coverage should be:
+      | service_assignment_id | assigned_staff_count |
+      | 1                     | 0                    |

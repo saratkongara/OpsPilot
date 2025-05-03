@@ -41,6 +41,11 @@ Feature: Service Transition Constraints
       | staff_id | assigned_service_ids |
       | 1        | [1, 2]               |
 
+    And the service coverage should be:
+      | service_assignment_id | assigned_staff_count |
+      | 1                     | 1                    |
+      | 2                     | 1                    |
+
   Scenario: Staff cannot be assigned to two overlapping services
     Given the following staff exists:
       | id | name  | certifications | eligible_for_services | shifts          |
@@ -80,7 +85,7 @@ Feature: Service Transition Constraints
       | staff_id | assigned_service_ids |
       | 1        | [1]                  |
 
-    Then the service coverage should be:
+    And the service coverage should be:
       | service_assignment_id | assigned_staff_count |
       | 1                     | 1                    |
       | 2                     | 0                    |
@@ -125,7 +130,7 @@ Feature: Service Transition Constraints
       | staff_id | assigned_service_ids |
       | 1        | [1, 2]               |
 
-    Then the service coverage should be:
+    And the service coverage should be:
       | service_assignment_id | assigned_staff_count |
       | 1                     | 1                    |
       | 2                     | 1                    |

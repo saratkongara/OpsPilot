@@ -6,7 +6,7 @@ Feature: Flight Priority-Based Assignment
   Scenario: Staff assigned to lower-number flight priority (Flight A over Flight B)
     Given the following staff exists:
       | id | name  | certifications | eligible_for_services | shifts          |
-      | 1  | Alice | [1,2]          | ['S', 'F']            | ['08:00-12:00'] |
+      | 1  | Alice | [1,2]          | ['S']            | ['08:00-12:00'] |
 
     And the following services exist:
       | id | name       | certifications | requirement |
@@ -25,8 +25,8 @@ Feature: Flight Priority-Based Assignment
 
     And the following service assignments exist:
       | id | service_id | staff_count | location_id | flight_number | priority | relative_start | relative_end | service_type |
-      | 1  | 1          | 1           | 1           | FL100         | 22.1     | A+10           | A+40         | F            |
-      | 2  | 2          | 1           | 2           | FL200         | 14.3     | A+10           | A+40         | F            |
+      | 1  | 1          | 1           | 1           | FL100         | 2.1     | A+10           | A+40         | S            |
+      | 2  | 2          | 1           | 2           | FL200         | 1.3     | A+10           | A+40         | S            |
 
     When the scheduler runs
 
