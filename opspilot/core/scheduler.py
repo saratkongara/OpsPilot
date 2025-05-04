@@ -6,6 +6,7 @@ from opspilot.services import OverlapDetectionService
 from opspilot.constraints import StaffCertificationConstraint, StaffEligibilityConstraint, StaffCountConstraint, StaffAvailabilityConstraint
 from opspilot.constraints import ServiceTransitionConstraint, SingleServiceConstraint, FixedServiceConstraint, MultiTaskServiceConstraint
 from opspilot.strategies import MinimizeStaffStrategy, BalanceWorkloadStrategy
+from opspilot.plans import AllocationPlan
 from time import time
 import logging
 
@@ -21,7 +22,7 @@ class Scheduler:
         service_assignments: List[ServiceAssignment],
         settings: Settings,
         travel_times: Optional[List[TravelTime]] = [],
-        previous_assignments: Optional[Dict[Tuple[int, int], bool]] = []
+        hints: Optional[AllocationPlan] = None
     ):
         """
         Initialize the scheduler with input data.
@@ -38,7 +39,7 @@ class Scheduler:
         self.flights = flights
         self.service_assignments = service_assignments
         self.settings = settings
-        self.previous_assignments = previous_assignments or {}
+        self.hints = hints
         
         # OR-Tools model
         self.model = cp_model.CpModel()
@@ -113,15 +114,16 @@ class Scheduler:
         
         for staff in self.roster:
             for service_assignment in self.service_assignments:
+                key = (staff.id, service_assignment.id)
                 var_name = f"staff_{staff.id}_service_assignment_{service_assignment.id}"
-                self.assignment_vars[(staff.id, service_assignment.id)] = self.model.NewBoolVar(var_name)
+                self.assignment_vars[key] = self.model.NewBoolVar(var_name)
                 
-                # Apply previous assignment as hint if available
-                if (staff.id, service_assignment.id) in self.previous_assignments:
-                    self.model.AddHint(
-                        self.assignment_vars[(staff.id, service_assignment.id)],
-                        int(self.previous_assignments[(staff.id, service_assignment.id)])
-                    )
+                # Apply hints if provided
+                if self.hints:
+                    hint = self.hints.get_allocation(service_assignment.id, staff.id)
+                    if hint:
+                        logging.debug(f"Applying hint: {hint} for key: {key}")
+                        self.model.AddHint(self.assignment_vars[key], 1)
         
         logging.info(f"Created {len(self.assignment_vars)} assignment variables in {time() - start_time:.2f}s")
 
@@ -224,3 +226,32 @@ class Scheduler:
                 coverage[service_assignment_id] += 1
         
         return coverage
+    
+    def get_allocation_plan(self) -> AllocationPlan:
+        """
+        Convert the current solution into an AllocationPlan object.
+        
+        Returns:
+            AllocationPlan containing all assignments from the current solution
+        """
+        # Initialize the allocation plan with all required components
+        allocation_plan = AllocationPlan(
+            service_assignments=self.service_assignments,
+            service_map=self.service_map,
+            staff_map=self.staff_map,
+            flight_map=self.flight_map
+        )
+        
+        # If no solution exists, return empty plan
+        if self.solution_status != SchedulerResult.FOUND:
+            return allocation_plan
+        
+        # Populate the allocation plan with assignments from the solution
+        for (staff_id, service_assignment_id), assigned in self.solution.items():
+            if assigned:  # Only add positive assignments
+                allocation_plan.add_allocation(
+                    service_assignment_id=service_assignment_id,
+                    staff_id=staff_id
+                )
+        
+        return allocation_plan
