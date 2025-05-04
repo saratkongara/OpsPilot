@@ -22,5 +22,17 @@
         "name": "Ramp Services",
         "certifications": [1, 3],
         "certification_requirement": "Any"
-    } 
+    },
+    {
+        "id": 5,
+        "name": "Check-in Assistance",
+        "certifications": [2],
+        "certification_requirement": "Any"
+    },
+    {
+        "id": 6,
+        "name": "Boarding",
+        "certifications": [2, 3],
+        "certification_requirement": "All"
+    }
 ]

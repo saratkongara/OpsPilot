@@ -3,6 +3,10 @@
       "number": "AA123",
       "arrival_time": "14:30",
       "departure_time": "16:30"
+    },
+    {
+      "number": "UA456",
+      "arrival_time": "15:00",
+      "departure_time": "17:00"
     }
-  ]
-  
+]
