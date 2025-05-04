@@ -6,7 +6,7 @@ from datetime import datetime, time
 class ServiceAssignment(BaseModel):
     id: int
     service_id: int   # Id of the service to be assigned
-    priority: float   # Combined priority for this specific service assignment (flight_priority.service_priority). First flight priority followed by service priority
+    priority: float   # Combined priority for this specific service assignment (flight_priority.service_priority). First flight priority followed by service priority. Lower number is higher priority
     staff_count: int  # Number of staff required for this service assignment
     location_id: int  # Location where the service will be performed
 

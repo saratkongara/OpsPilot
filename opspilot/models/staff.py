@@ -9,7 +9,7 @@ class Staff(BaseModel):
     certifications: List[int]
     eligible_for_services: List[ServiceType]
     priority_service_id: Optional[int] = None       # Strong preference for assignment
-    rank_level: Optional[int] = 0                   # Lower is higher priority
+    rank_level: Optional[int] = 0                   # Lower number is higher priority
 
     def is_available_for_service(self, service_start_minutes: int, service_end_minutes: int) -> bool:
         """
