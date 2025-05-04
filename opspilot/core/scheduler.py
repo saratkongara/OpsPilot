@@ -3,6 +3,8 @@ from typing import Optional, List, Dict, Tuple
 from  opspilot.core.scheduler_result import SchedulerResult
 from opspilot.models import Staff, Service, Flight, ServiceAssignment, TravelTime, Settings, AssignmentStrategy, ServiceType
 from opspilot.services import OverlapDetectionService
+from opspilot.constraints import StaffCertificationConstraint, StaffEligibilityConstraint, StaffCountConstraint, StaffAvailabilityConstraint
+from opspilot.constraints import ServiceTransitionConstraint, SingleServiceConstraint, FixedServiceConstraint, MultiTaskServiceConstraint
 from time import time
 from collections import defaultdict
 import logging
@@ -62,6 +64,42 @@ class Scheduler:
 
         self.overlap_map = overlap_detector.detect_overlaps()
         
+        # Create constraints
+        self.constraints = [
+            StaffCertificationConstraint(
+                staff_map=self.staff_map,
+                service_assignment_map=self.service_assignment_map,
+                service_map=self.service_map,
+            ),
+            StaffEligibilityConstraint(
+                staff_map=self.staff_map,
+                service_assignment_map=self.service_assignment_map,
+            ),
+            StaffCountConstraint(service_assignments=self.service_assignments),
+            StaffAvailabilityConstraint(
+                roster=self.roster,
+                service_assignments=self.service_assignments,
+                flight_map=self.flight_map
+            ),
+            ServiceTransitionConstraint(
+                roster=self.roster,
+                overlap_map=self.overlap_map,
+                service_assignment_map=self.service_assignment_map,
+                service_map=self.service_map,
+                flight_map=self.flight_map
+            ),
+            SingleServiceConstraint(
+                service_assignment_map=self.service_assignment_map,
+            ),
+            FixedServiceConstraint(
+                service_assignment_map=self.service_assignment_map,
+            ),
+            MultiTaskServiceConstraint(
+                service_assignments=self.service_assignments,
+                roster=self.roster,
+                service_map=self.service_map,
+            ),
+        ]
         # Results and metrics
         self.solution: Dict[Tuple[int, int], bool] = {}
         self.solution_status: Optional[SchedulerResult] = None
@@ -87,273 +125,6 @@ class Scheduler:
         
         logging.info(f"Created {len(self.assignment_vars)} assignment variables in {time() - start_time:.2f}s")
 
-    def add_staff_certification_constraint(self) -> None:
-        """Ensure staff only get assigned to services they're certified for."""
-        start_time = time()
-        logging.info("Adding certification constraints...")
-
-        for (staff_id, service_assignment_id), var in self.assignment_vars.items():
-            staff = self.staff_map[staff_id]
-            service_assignment = self.service_assignment_map[service_assignment_id]
-            service = self.service_map[service_assignment.service_id]
-
-            if not staff.is_certified_for_service(service):
-                self.model.Add(var == 0)
-
-        logging.info(f"Added certification constraints in {time() - start_time:.2f}s")
-
-    def add_staff_eligibility_constraint(self) -> None:
-        """Ensure staff are only assigned to services they are eligible for based on service type."""
-        start_time = time()
-        logging.info("Adding eligibility constraints...")
-
-        for (staff_id, service_assignment_id), var in self.assignment_vars.items():
-            staff = self.staff_map[staff_id]
-            service_assignment = self.service_assignment_map[service_assignment_id]
-
-            if not staff.is_eligible_for_service(service_assignment):
-                self.model.Add(var == 0)
-
-        logging.info(f"Added eligibility constraints in {time() - start_time:.2f}s")
-
-    def add_staff_count_constraint(self) -> None:
-        """Ensure each service assignment gets the required number of staff."""
-        start_time = time()
-        logging.info("Adding staff count constraints...")
-        
-        for service_assignment in self.service_assignments:
-            # Sum of all assignments for this service
-            assignment_vars = [
-                var for (_, service_assignment_id), var in self.assignment_vars.items()
-                if service_assignment_id == service_assignment.id
-            ]
-            
-            # Must have at most the required number of staff
-            self.model.Add(sum(assignment_vars) <= service_assignment.staff_count)
-
-        logging.info(f"Added staff count constraints in {time() - start_time:.2f}s")
-
-    def add_staff_availability_constraint(self) -> None:
-        """Ensure staff are only assigned to services they are available for."""
-        for (staff_id, service_assignment_id), assignment_var in self.assignment_vars.items():
-            staff = next(staff for staff in self.roster if staff.id == staff_id)
-            service_assignment = next(sa for sa in self.service_assignments if sa.id == service_assignment_id)
-
-            service_start_minutes, service_end_minutes = service_assignment.get_service_time_minutes(self.flight_map)
-
-            if not staff.is_available_for_service(service_start_minutes, service_end_minutes):
-                logging.info(
-                    f"Staff {staff_id} not available for service_assignment {service_assignment_id} "
-                    f"(Service time {service_start_minutes}–{service_end_minutes} mins), setting var {assignment_var} to 0"
-                )
-                self.model.Add(assignment_var == 0)
-
-
-    def add_service_transition_constraint(self) -> None:
-        """
-        Prevent staff from being assigned to overlapping service assignments
-        that do not allow sufficient travel and buffer time between them.
-        Only apply to staff who are eligible for both services.
-        """
-        start_time = time()
-        logging.info("Adding service transition (overlap) constraints...")
-
-        for staff in self.roster:
-            for sa_id_a, conflicting_ids in self.overlap_map.items():
-                service_assignment_a = self.service_assignment_map[sa_id_a]
-                service_a = self.service_map[service_assignment_a.service_id]
-
-                # Skip if staff cannot perform service A
-                service_a_start_minutes, service_a_end_minutes = service_assignment_a.get_service_time_minutes(self.flight_map)
-                if not staff.can_perform_service(service_a, service_a_start_minutes, service_a_end_minutes, service_assignment_a):
-                    continue
-
-                for sa_id_b in conflicting_ids:
-                    service_assignment_b = self.service_assignment_map[sa_id_b]
-                    service_b = self.service_map[service_assignment_b.service_id]
-
-                    # Skip if staff cannot perform service B
-                    service_b_start_minutes, service_b_end_minutes = service_assignment_b.get_service_time_minutes(self.flight_map)
-                    if not staff.can_perform_service(service_b, service_b_start_minutes, service_b_end_minutes, service_assignment_b):
-                        continue
-
-                    var_a = self.assignment_vars[(staff.id, sa_id_a)]
-                    var_b = self.assignment_vars[(staff.id, sa_id_b)]
-
-                    self.model.Add(var_a + var_b <= 1)
-
-        logging.info(f"Added service transition constraints in {time() - start_time:.2f}s")
-
-    def add_single_service_constraints(self):
-        """
-        Enforces Single (S) service assignment rules, but only for FlightZone services:
-        1. A staff member can be assigned to at most one 'S' type service per flight.
-        2. If assigned to an 'S' service, they cannot be assigned to any other service on the same flight.
-
-        These constraints are skipped for CommonZone services (service_assignment.flight_number is None).
-        As CommonZone services can only be either Single or Fixed, the service transition constraint will make sure
-        that a staff member is not assigned to multiple CommonZone services (at same or different location) at the same time.
-        """
-
-        # Group service assignments by (flight_number, staff_id)
-        flight_staff_to_vars = defaultdict(lambda: {"S": [], "other": []})
-
-        for (staff_id, service_assignment_id), var in self.assignment_vars.items():
-            service_assignment = self.service_assignment_map[service_assignment_id]
-            flight_number = service_assignment.flight_number
-            service_type = service_assignment.service_type
-
-            # Only apply constraints for FlightZone services
-            if flight_number is None:
-                continue
-
-            if service_type == 'S':
-                flight_staff_to_vars[(flight_number, staff_id)]["S"].append(var)
-            else:
-                flight_staff_to_vars[(flight_number, staff_id)]["other"].append(var)
-
-        for (flight_number, staff_id), grouped in flight_staff_to_vars.items():
-            s_vars = grouped["S"]
-            other_vars = grouped["other"]
-
-            if not s_vars:
-                continue
-
-            # Constraint 1: At most one 'S' service per flight
-            self.model.Add(sum(s_vars) <= 1)
-
-            if not other_vars:
-                continue
-
-            # Constraint 2: If assigned to an 'S' service, cannot be assigned to other services on the same flight
-            has_s = self.model.NewBoolVar(f's_assigned_{flight_number}_{staff_id}')
-            self.model.Add(sum(s_vars) == 1).OnlyEnforceIf(has_s)
-            self.model.Add(sum(s_vars) == 0).OnlyEnforceIf(has_s.Not())
-
-            self.model.Add(sum(other_vars) == 0).OnlyEnforceIf(has_s)
-
-    def add_fixed_service_constraints(self):
-        """
-        Enforces Fixed (F) service assignment rules:
-        1. For FlightZone:
-        - A staff member can be assigned to at most one Fixed (F) service per flight.
-
-        2. Across all zones (FlightZone + CommonZone):
-        - A staff member can be assigned to only one specific Fixed service_id for the entire day (repeated at different times is okay).
-        - If assigned to any Fixed (F) service, staff cannot be assigned to any non-Fixed (S/C/M) service for the whole day.
-        """
-
-        # Step 1: FlightZone — at most one Fixed per flight
-        flight_staff_to_fixed_vars = defaultdict(list)
-
-        for (staff_id, sa_id), var in self.assignment_vars.items():
-            sa = self.service_assignment_map[sa_id]
-            if sa.flight_number is not None and sa.service_type == 'F':
-                flight_staff_to_fixed_vars[(sa.flight_number, staff_id)].append(var)
-
-        for (flight_number, staff_id), fixed_vars in flight_staff_to_fixed_vars.items():
-            self.model.Add(sum(fixed_vars) <= 1)
-
-        # Step 2: Only one Fixed service_id per staff for the whole day
-        staff_to_fixed_services = defaultdict(lambda: defaultdict(list))
-
-        for (staff_id, sa_id), var in self.assignment_vars.items():
-            sa = self.service_assignment_map[sa_id]
-            if sa.service_type == 'F':
-                staff_to_fixed_services[staff_id][sa.service_id].append(var)
-
-        for staff_id, service_to_vars in staff_to_fixed_services.items():
-            service_flags = []
-            for service_id, vars_for_service in service_to_vars.items():
-                flag = self.model.NewBoolVar(f"staff_{staff_id}_uses_fixed_{service_id}")
-                self.model.Add(sum(vars_for_service) >= 1).OnlyEnforceIf(flag)
-                self.model.Add(sum(vars_for_service) == 0).OnlyEnforceIf(flag.Not())
-                service_flags.append(flag)
-
-            self.model.Add(sum(service_flags) <= 1)
-
-        # Step 3: If assigned to any Fixed service, block all non-Fixed assignments (whole day)
-        for staff_id in set(staff_id for (staff_id, _) in self.assignment_vars):
-            fixed_vars = []
-            non_fixed_vars = []
-
-            for (s_id, sa_id), var in self.assignment_vars.items():
-                if s_id != staff_id:
-                    continue
-                sa = self.service_assignment_map[sa_id]
-                if sa.service_type == 'F':
-                    fixed_vars.append(var)
-                else:
-                    non_fixed_vars.append(var)
-
-            if fixed_vars and non_fixed_vars:
-                fixed_selected = self.model.NewBoolVar(f"staff_{staff_id}_assigned_fixed")
-                self.model.Add(sum(fixed_vars) >= 1).OnlyEnforceIf(fixed_selected)
-                self.model.Add(sum(fixed_vars) == 0).OnlyEnforceIf(fixed_selected.Not())
-
-                for nf_var in non_fixed_vars:
-                    self.model.Add(nf_var == 0).OnlyEnforceIf(fixed_selected)
-
-    def add_multi_task_service_constraints(self):
-        """
-        Enforces:
-        - Staff cannot be assigned to mutually exclusive multi-task services on the same flight.
-        - The number of multi-task services per staff on a flight is bounded by multi_task_limit.
-        """
-        logging.debug("Adding multi-task service constraints...")
-
-        # Group multi-task service assignments by flight number
-        flight_service_map = defaultdict(list)
-        for sa in self.service_assignments:
-            if sa.service_type == ServiceType.MULTI_TASK and sa.flight_number:
-                flight_service_map[sa.flight_number].append(sa)
-
-        for staff in self.roster:
-            for flight_number, flight_services in flight_service_map.items():
-                # All multi-task service assignments on this flight that this staff might be assigned to
-                staff_services = [
-                    sa for sa in flight_services if (staff.id, sa.id) in self.assignment_vars
-                ]
-                staff_vars = {
-                    sa.id: self.assignment_vars[(staff.id, sa.id)] for sa in staff_services
-                }
-
-                self._apply_exclude_services_constraint(staff_services, staff_vars, staff.id, flight_number)
-                self._apply_multi_task_limit_constraint(staff_services, staff_vars, staff.id, flight_number)
-
-    def _apply_exclude_services_constraint(self, staff_services, staff_vars, staff_id, flight_number):
-        """
-        Ensure a staff is not assigned to two services that exclude each other on the same flight.
-        """
-        for i in range(len(staff_services)):
-            sa1 = staff_services[i]
-            for j in range(i + 1, len(staff_services)):
-                sa2 = staff_services[j]
-                if sa2.service_id in sa1.exclude_services or sa1.service_id in sa2.exclude_services:
-                    var1 = staff_vars[sa1.id]
-                    var2 = staff_vars[sa2.id]
-                    logging.debug(f"[Exclude] Staff {staff_id} - Flight {flight_number} - SA {sa1.id} ↔ SA {sa2.id}")
-                    self.model.Add(var1 + var2 <= 1)
-
-    def _apply_multi_task_limit_constraint(self, staff_services, staff_vars, staff_id, flight_number):
-        """
-        Ensure the number of multi-task services assigned to a staff on a single flight does not exceed the limit.
-        """
-        for sa in staff_services:
-            limit = sa.multi_task_limit
-            if limit is None:
-                continue
-
-            compatible_vars = [
-                staff_vars[other_sa.id]
-                for other_sa in staff_services
-                if other_sa.id != sa.id
-                and sa.service_id not in other_sa.exclude_services
-                and other_sa.service_id not in sa.exclude_services
-            ]
-            total = staff_vars[sa.id] + sum(compatible_vars)
-            logging.debug(f"[Limit] Staff {staff_id} - Flight {flight_number} - SA {sa.id} → Limit {limit}")
-            self.model.Add(total <= limit)
 
     def set_objective(self) -> None:
         """
@@ -488,20 +259,24 @@ class Scheduler:
             total_staff_used                     # Tertiary: prefer spreading load across staff
         )
 
+    def apply_constraints(self) -> None:
+        """Apply all constraints to the model."""
+        start_time = time()
+        logging.info("Applying constraints...")
+
+        for constraint in self.constraints:
+            constraint.apply(self.model, self.assignment_vars)
+
+        logging.info(f"Applied constraints in {time() - start_time:.2f}s")
+
     def run(self) -> SchedulerResult:
         """Run the optimization and store results."""
         logging.info("Starting solver...")
         start_time = time()
 
         self.create_assignment_variables()
-        self.add_staff_certification_constraint()
-        self.add_staff_eligibility_constraint()
-        self.add_staff_count_constraint()
-        self.add_staff_availability_constraint()
-        self.add_service_transition_constraint()
-        self.add_single_service_constraints()
-        self.add_fixed_service_constraints()
-        self.add_multi_task_service_constraints()
+        self.apply_constraints()
+        
         self.set_objective()
         
         status = self.solver.Solve(self.model)
