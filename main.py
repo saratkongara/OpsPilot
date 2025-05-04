@@ -77,7 +77,7 @@ def run():
 
     result = scheduler.run()
 
-    if result in (SchedulerResult.OPTIMAL, SchedulerResult.FEASIBLE):
+    if result == SchedulerResult.FOUND:
         # schedule = scheduler.get_allocation_plan().get_schedule()
         # schedule.display()
         assignments = scheduler.get_assignments()

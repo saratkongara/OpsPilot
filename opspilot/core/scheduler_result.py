@@ -1,7 +1,5 @@
 from enum import Enum
 
 class SchedulerResult(str, Enum):
-    OPTIMAL = "OPTIMAL"
-    FEASIBLE = "FEASIBLE"
-    INFEASIBLE = "INFEASIBLE"
-    UNKNOWN = "UNKNOWN"
+    FOUND = "Found"
+    NOT_FOUND = "Not Found"

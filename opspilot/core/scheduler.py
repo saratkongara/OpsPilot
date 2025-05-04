@@ -175,16 +175,13 @@ class Scheduler:
         status = self.solver.Solve(self.model)
         self.solve_time = time() - start_time
 
-        if status == cp_model.OPTIMAL:
-            self.solution_status = SchedulerResult.OPTIMAL
-        elif status == cp_model.FEASIBLE:
-            self.solution_status = SchedulerResult.FEASIBLE
-        elif status == cp_model.INFEASIBLE:
-            self.solution_status = SchedulerResult.INFEASIBLE
+        if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
+            self.solution_status = SchedulerResult.FOUND
         else:
-            self.solution_status = SchedulerResult.UNKNOWN
+            # cp_model.INFEASIBLE
+            self.solution_status = SchedulerResult.NOT_FOUND
         
-        if self.solution_status in (SchedulerResult.OPTIMAL, SchedulerResult.FEASIBLE):
+        if self.solution_status == SchedulerResult.FOUND:
             self._store_solution()
             self.objective_value = self.solver.ObjectiveValue()
 
