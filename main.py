@@ -1,7 +1,7 @@
 from opspilot.core import Scheduler, SchedulerResult
 from opspilot.models import (
     Flight, Service, Staff, Shift, ServiceAssignment, TravelTime, Settings,
-    CertificationRequirement, ServiceType
+    CertificationRequirement, ServiceType, Location, LocationType
 )
 from typing import List
 import json
@@ -58,12 +58,25 @@ def load_travel_times(file_path: str) -> List[TravelTime]:
     return [TravelTime(**t) for t in load_json(file_path)]
 
 
+def load_locations(file_path: str) -> List[Location]:
+    locations = load_json(file_path)
+    return [
+        Location(
+            **{
+                **l,
+                 "location_type": LocationType(l["location_type"])
+            }
+        )
+        for l in locations
+    ]
+
 def run():
     flights = load_flights("data/flights.json")
     services = load_services("data/services.json")
     roster = load_roster("data/roster.json")
     service_assignments = load_service_assignments("data/service_assignments.json")
     travel_times = load_travel_times("data/travel_times.json")
+    locations = load_locations("data/locations.json")
     settings = Settings()
 
     scheduler = Scheduler(
@@ -78,14 +91,22 @@ def run():
     result = scheduler.run()
 
     if result == SchedulerResult.FOUND:
-        # schedule = scheduler.get_allocation_plan().get_schedule()
-        # schedule.display()
         assignments = scheduler.get_assignments()
         for staff_id, assignment_id in assignments.items():
             print(f"Staff ID {staff_id} assigned to Service Assignment ID {assignment_id}") 
+    
+        location_map = {location.id: location for location in locations}
+        
+        staff_schedule = scheduler.get_allocation_plan(location_map).staff_schedule()
+        print(f"Staff schedule: #{staff_schedule}")
+
+        flight_zone_services_schedule = scheduler.get_allocation_plan(location_map).flight_zone_services_schedule()
+        print(f"Flight zone services schedule: #{flight_zone_services_schedule}")
+
+        common_zone_services_schedule = scheduler.get_allocation_plan(location_map).common_zone_services_schedule()
+        print(f"Common zone services schedule: #{common_zone_services_schedule}")
     else:
         print("No feasible schedule found.")
-
 
 if __name__ == "__main__":
     run()

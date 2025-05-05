@@ -12,8 +12,8 @@ class EquipmentType(str, Enum):
 
 class LocationType(str, Enum):
     BAY = "Bay"
-    CHECK_IN_COUNTER = "Check-in Counter"
-    BOARDING_GATE = "Boarding Gate"
+    CHECK_IN_COUNTER = "Counter"
+    BOARDING_GATE = "Gate"
     ZONE = "Zone"
     AREA = "Area"
     TERMINAL = "Terminal"

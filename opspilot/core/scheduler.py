@@ -1,7 +1,7 @@
 from ortools.sat.python import cp_model
 from typing import Optional, List, Dict, Tuple
 from  opspilot.core.scheduler_result import SchedulerResult
-from opspilot.models import Staff, Service, Flight, ServiceAssignment, TravelTime, Settings, AssignmentStrategy
+from opspilot.models import Staff, Service, Flight, ServiceAssignment, TravelTime, Settings, AssignmentStrategy, Location
 from opspilot.services import OverlapDetectionService
 from opspilot.constraints import StaffCertificationConstraint, StaffEligibilityConstraint, StaffCountConstraint, StaffAvailabilityConstraint
 from opspilot.constraints import ServiceTransitionConstraint, SingleServiceConstraint, FixedServiceConstraint, MultiTaskServiceConstraint
@@ -227,7 +227,7 @@ class Scheduler:
         
         return coverage
     
-    def get_allocation_plan(self) -> AllocationPlan:
+    def get_allocation_plan(self, location_map: Dict[int, 'Location'],) -> AllocationPlan:
         """
         Convert the current solution into an AllocationPlan object.
         
@@ -236,10 +236,11 @@ class Scheduler:
         """
         # Initialize the allocation plan with all required components
         allocation_plan = AllocationPlan(
-            service_assignments=self.service_assignments,
+            service_assignment_map=self.service_assignment_map,
             service_map=self.service_map,
             staff_map=self.staff_map,
-            flight_map=self.flight_map
+            flight_map=self.flight_map,
+            location_map=location_map,
         )
         
         # If no solution exists, return empty plan

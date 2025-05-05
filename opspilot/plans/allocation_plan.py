@@ -1,34 +1,38 @@
 import json
-from typing import Dict, List, Optional, Set
-from opspilot.models import ServiceAssignment, Staff, Flight, Service
+from typing import Dict, List, Set
+from opspilot.models import ServiceAssignment, Staff, Flight, Service, Location
+from .schedule_entry import ScheduleEntry
+from collections import defaultdict
 
 class AllocationPlan:
     def __init__(
         self,
-        service_assignments: List['ServiceAssignment'],
+        service_assignment_map: Dict[int, 'ServiceAssignment'],
         service_map: Dict[int, 'Service'],
         staff_map: Dict[int, 'Staff'],
-        flight_map: Dict[str, 'Flight']
+        flight_map: Dict[str, 'Flight'],
+        location_map: Dict[int, 'Location'],
     ):
         """
         Initialize the allocation plan.
         Only positive assignments (True values) are stored.
         """
         self.allocations = {}  # Format: {service_assignment_id: set(staff_ids)}
-        self.service_assignment_map = {sa.id: sa for sa in service_assignments}
+        self.service_assignment_map = service_assignment_map
         self.service_map = service_map
         self.staff_map = staff_map
         self.flight_map = flight_map
+        self.location_map = location_map
+
         # Build reverse mapping for flight-based lookups
         self._flight_to_assignments = self._build_flight_assignments_map()
 
     def _build_flight_assignments_map(self) -> Dict[str, Set[int]]:
         """Create a mapping from flight numbers to service assignment IDs"""
-        flight_assignments = {}
+        flight_assignments = defaultdict(set)
         for sa in self.service_assignment_map.values():
             if sa.flight_number:
-                if sa.flight_number not in flight_assignments:
-                    flight_assignments[sa.flight_number] = set()
+                # Only include service assignments with a flight number
                 flight_assignments[sa.flight_number].add(sa.id)
         return flight_assignments
 
@@ -106,5 +110,120 @@ class AllocationPlan:
         # Remove from flight mapping as well
         del self._flight_to_assignments[flight_number]
 
-    
+    def _format_minutes_to_time_str(self, minutes: int) -> str:
+        """Convert minutes since midnight into HH:MM format."""
+        hours, mins = divmod(minutes, 60)
+        hours = hours % 24  # Handle wraparound over 24h
+        return f"{hours:02}:{mins:02}"
+
+    def staff_schedule(self) -> Dict[int, List[ScheduleEntry]]:
+        schedule = defaultdict(list)
+
+        for sa_id, staff_ids in self.allocations.items():
+            sa = self.service_assignment_map[sa_id]
+            service = self.service_map[sa.service_id]
+            location = self.location_map[sa.location_id]
+
+            if sa.flight_number:
+                flight = self.flight_map[sa.flight_number]
+                start_min, end_min = flight.get_service_time_minutes(sa.relative_start, sa.relative_end)
+            else:
+                start_min = sa.start_time.hour * 60 + sa.start_time.minute
+                end_min = sa.end_time.hour * 60 + sa.end_time.minute
+
+            for staff_id in staff_ids:
+                staff = self.staff_map[staff_id]
+
+                entry = ScheduleEntry(
+                    service_assignment_id=sa_id,
+                    staff_id=staff_id,
+                    staff_name=staff.name,
+                    service_name=service.name,
+                    start_time=self._format_minutes_to_time_str(start_min),
+                    end_time=self._format_minutes_to_time_str(end_min),
+                    flight_number=sa.flight_number,
+                    location=location.name,
+                    flight_priority=int(sa.priority),
+                    service_priority=int((sa.priority * 10) % 10) if sa.flight_number else int(sa.priority),
+                )
+
+                schedule[staff_id].append(entry)
+
+        for entries in schedule.values():
+            entries.sort(key=lambda x: x.start_min)
+
+        return schedule
+
+    def flight_zone_services_schedule(self) -> Dict[str, List[ScheduleEntry]]:
+        schedule = defaultdict(list)
+
+        for sa_id, staff_ids in self.allocations.items():
+            sa = self.service_assignment_map[sa_id]
+            if not sa.flight_number:
+                continue
+
+            flight = self.flight_map[sa.flight_number]
+            service = self.service_map[sa.service_id]
+            location = self.location_map[sa.location_id]
+            start_min, end_min = flight.get_service_time_minutes(sa.relative_start, sa.relative_end)
+
+            for staff_id in staff_ids:
+                staff = self.staff_map[staff_id]
+
+                entry = ScheduleEntry(
+                    service_assignment_id=sa_id,
+                    staff_id=staff_id,
+                    staff_name=staff.name,
+                    service_name=service.name,
+                    start_time=self._format_minutes_to_time_str(start_min),
+                    end_time=self._format_minutes_to_time_str(end_min),
+                    flight_number=sa.flight_number,
+                    location=location.name,
+                    flight_priority=int(sa.priority),
+                    service_priority=int((sa.priority * 10) % 10),
+                )
+
+                schedule[sa.flight_number].append(entry)
+
+        for entries in schedule.values():
+            entries.sort(key=lambda x: x.start_min)
+
+        return schedule
+
+    def common_zone_services_schedule(self) -> Dict[int, List[ScheduleEntry]]:
+        schedule = defaultdict(list)
+
+        for sa_id, staff_ids in self.allocations.items():
+            sa = self.service_assignment_map[sa_id]
+            if sa.flight_number:
+                continue
+
+            service = self.service_map[sa.service_id]
+            location = self.location_map[sa.location_id]
+            start_min = sa.start_time.hour * 60 + sa.start_time.minute
+            end_min = sa.end_time.hour * 60 + sa.end_time.minute
+
+            for staff_id in staff_ids:
+                staff = self.staff_map[staff_id]
+
+                entry = ScheduleEntry(
+                    service_assignment_id=sa_id,
+                    staff_id=staff_id,
+                    staff_name=staff.name,
+                    service_name=service.name,
+                    start_time=self._format_minutes_to_time_str(start_min),
+                    end_time=self._format_minutes_to_time_str(end_min),
+                    flight_number=None,
+                    location=location.name,
+                    flight_priority=None,
+                    service_priority=int(sa.priority),
+                )
+
+                schedule[sa_id].append(entry)
+
+        for entries in schedule.values():
+            entries.sort(key=lambda x: x.start_min)
+
+        return schedule
+
 
