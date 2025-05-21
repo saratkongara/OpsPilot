@@ -1,6 +1,6 @@
 from ortools.sat.python import cp_model
 from typing import Optional, List, Dict, Tuple
-from  opspilot.core.scheduler_result import SchedulerResult
+from opspilot.core.scheduler_result import SchedulerResult
 from opspilot.models import Staff, Service, Flight, ServiceAssignment, TravelTime, Settings, AssignmentStrategy, Location
 from opspilot.services import OverlapDetectionService
 from opspilot.constraints import StaffCertificationConstraint, StaffEligibilityConstraint, StaffCountConstraint, StaffAvailabilityConstraint
