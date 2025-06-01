@@ -227,6 +227,22 @@ class Scheduler:
         
         return coverage
     
+    def get_assigned_staff(self, service_assignment_id: int) -> List[int]:
+        """
+        Get a list of staff IDs assigned to the given service assignment.
+        
+        Args:
+            service_assignment_id: ID of the service assignment
+        
+        Returns:
+            List of staff IDs who are assigned to this service assignment.
+        """
+        return [
+            staff_id
+            for (staff_id, sa_id), assigned in self.solution.items()
+            if sa_id == service_assignment_id and assigned
+        ]
+
     def get_allocation_plan(self, location_map: Dict[int, 'Location'],) -> AllocationPlan:
         """
         Convert the current solution into an AllocationPlan object.
