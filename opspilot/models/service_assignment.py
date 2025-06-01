@@ -24,7 +24,7 @@ class ServiceAssignment(BaseModel):
     exclude_services: List[int] = Field(default_factory=list)  # Services that cannot be multi-tasked with this assignment
 
     needs_equipment: bool = False  # Indicates if the service requires equipment
-    equipment_type: Optional[EquipmentType] # Type of equipment required for the service
+    equipment_type: Optional[EquipmentType] = None # Type of equipment required for the service
     equipment_id: Optional[int] = None  # Id of the equipment to be used (if any)
 
     @field_validator("start_time", "end_time", mode='before')
@@ -61,6 +61,20 @@ class ServiceAssignment(BaseModel):
             raise ValueError("Must specify either absolute or relative times")
         return self
     
+    @model_validator(mode="after")
+    def validate_equipment_requirements(self):
+        if self.needs_equipment:
+            if self.equipment_type is None:
+                raise ValueError("equipment_type must be provided when needs_equipment is True")
+            if self.equipment_id is None:
+                raise ValueError("equipment_id must be provided when needs_equipment is True")
+        else:
+            if self.equipment_type is not None:
+                raise ValueError("equipment_type must be None when needs_equipment is False")
+            if self.equipment_id is not None:
+                raise ValueError("equipment_id must be None when needs_equipment is False")
+        return self
+
     @model_validator(mode="after")
     def validate_service_assignment(self):
         # Validate multi_task_limit
@@ -108,3 +122,4 @@ class ServiceAssignment(BaseModel):
             f"start_time={self.start_time}, end_time={self.end_time}, "
             f"priority={self.priority})>, staff_count={self.staff_count}, "
         )
+
