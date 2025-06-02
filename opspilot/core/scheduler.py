@@ -3,7 +3,7 @@ from typing import Optional, List, Dict, Tuple
 from opspilot.core.scheduler_result import SchedulerResult
 from opspilot.models import Staff, Service, Flight, ServiceAssignment, TravelTime, Settings, AssignmentStrategy, Location
 from opspilot.services import OverlapDetectionService
-from opspilot.constraints import StaffCertificationConstraint, StaffEligibilityConstraint, StaffCountConstraint, StaffAvailabilityConstraint
+from opspilot.constraints import StaffCertificationConstraint, StaffEligibilityConstraint, StaffCountConstraint, StaffAvailabilityConstraint, StaffRoleConstraint
 from opspilot.constraints import ServiceTransitionConstraint, SingleServiceConstraint, FixedServiceConstraint, MultiTaskServiceConstraint
 from opspilot.strategies import MinimizeStaffStrategy, BalanceWorkloadStrategy
 from opspilot.plans import AllocationPlan
@@ -81,6 +81,10 @@ class Scheduler:
                 roster=self.roster,
                 service_assignments=self.service_assignments,
                 flight_map=self.flight_map
+            ),
+            StaffRoleConstraint(
+                staff_map=self.staff_map,
+                service_assignment_map=self.service_assignment_map,
             ),
             ServiceTransitionConstraint(
                 roster=self.roster,

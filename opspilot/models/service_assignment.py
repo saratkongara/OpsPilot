@@ -10,7 +10,8 @@ class ServiceAssignment(BaseModel):
     priority: float   # Combined priority for this specific service assignment (flight_priority.service_priority). First flight priority followed by service priority. Lower number is higher priority
     staff_count: int  # Number of staff required for this service assignment
     location_id: int  # Location where the service will be performed
-
+    priority_roles: List[List[str]] = Field(default_factory=list)  # List of Lists of priority roles for this service assignment
+    
     # Optional fields only for flight zone services
     flight_number: Optional[str] = None  # Flight number (e.g., "AA123")
     relative_start: Optional[str] = None  # Start time relative to flight arrival or departure time (e.g., "A+10")
@@ -20,10 +21,12 @@ class ServiceAssignment(BaseModel):
     start_time: Optional[time] = None
     end_time: Optional[time] = None
 
+    # Service type and multi-tasking properties
     service_type: ServiceType  # Defines if the service is single, multi-task, or fixed
     multi_task_limit: Optional[int] = None  # Limit for cross-utilizing staff in multi-task services
     exclude_services: List[int] = Field(default_factory=list)  # Services that cannot be multi-tasked with this assignment
 
+    # Equipment requirements
     needs_equipment: bool = False  # Indicates if the service requires equipment
     equipment_type: Optional[EquipmentType] = None # Type of equipment required for the service
     equipment_id: Optional[int] = None  # Id of the equipment to be used (if any)

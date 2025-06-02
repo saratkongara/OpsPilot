@@ -11,7 +11,8 @@ class Staff(BaseModel):
     eligible_for_services: List[ServiceType]
     priority_service_id: Optional[int] = None       # Strong preference for assignment
     rank_level: Optional[int] = 0                   # Lower number is higher priority
-
+    role_code: Optional[str] = None                 # Role code for staff (e.g., "TL", "CSA")
+    
     def is_available_for_service(self, service_intervals: List[Tuple[int, int]]) -> bool:
         """
         Checks if shifts of the staff fully cover all intervals of the given service.
