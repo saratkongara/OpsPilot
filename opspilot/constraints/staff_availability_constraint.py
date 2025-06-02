@@ -30,12 +30,13 @@ class StaffAvailabilityConstraint(Constraint):
             staff = self.staff_map[staff_id]
             service_assignment = self.service_assignment_map[service_assignment_id]
 
-            service_start, service_end = service_assignment.get_service_time_minutes(self.flight_map)
+            # Get service time intervals in minutes
+            service_intervals = service_assignment.minute_intervals(self.flight_map)
 
-            if not staff.is_available_for_service(service_start, service_end):
+            if not staff.is_available_for_service(service_intervals):
                 logging.info(
                     f"Staff {staff_id} not available for service_assignment {service_assignment_id} "
-                    f"(Service time {service_start}-{service_end} mins), setting var to 0"
+                    f"(Service time intervals: {service_intervals}, setting var to 0"
                 )
                 model.Add(var == 0)
 

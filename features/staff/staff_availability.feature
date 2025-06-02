@@ -65,7 +65,7 @@ Feature: Staff Availability Constraints
       | service_assignment_id | assigned_staff_count |
       | 1                     | 0                    |
 
-  @overnight3
+  @overnight
   Scenario: Flight zone overnight shift - Staff available
     Given the following staff exists:
       | id | name  | certifications | eligible_for_services | shifts          |
@@ -248,7 +248,7 @@ Feature: Staff Availability Constraints
       | 1                     | 0                    |
 
 
-  @overnight2
+  @overnight
   Scenario: Common zone overnight shift - Staff available
     Given the following staff exists:
       | id | name  | certifications | eligible_for_services | shifts          |

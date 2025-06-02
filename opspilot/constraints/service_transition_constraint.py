@@ -34,19 +34,19 @@ class ServiceTransitionConstraint(Constraint):
             for sa_id_a, conflicting_ids in self.overlap_map.items():
                 service_assignment_a = self.service_assignment_map[sa_id_a]
                 service_a = self.service_map[service_assignment_a.service_id]
+                service_a_intervals = service_assignment_a.minute_intervals(self.flight_map)
 
                 # Skip if staff cannot perform service A
-                service_a_start_minutes, service_a_end_minutes = service_assignment_a.get_service_time_minutes(self.flight_map)
-                if not staff.can_perform_service(service_a, service_a_start_minutes, service_a_end_minutes, service_assignment_a):
+                if not staff.can_perform_service(service_a, service_a_intervals, service_assignment_a):
                     continue
 
                 for sa_id_b in conflicting_ids:
                     service_assignment_b = self.service_assignment_map[sa_id_b]
                     service_b = self.service_map[service_assignment_b.service_id]
+                    service_b_intervals = service_assignment_b.minute_intervals(self.flight_map)
 
                     # Skip if staff cannot perform service B
-                    service_b_start_minutes, service_b_end_minutes = service_assignment_b.get_service_time_minutes(self.flight_map)
-                    if not staff.can_perform_service(service_b, service_b_start_minutes, service_b_end_minutes, service_assignment_b):
+                    if not staff.can_perform_service(service_b, service_b_intervals, service_assignment_b):
                         continue
 
                     var_a = assignments[(staff.id, sa_id_a)]

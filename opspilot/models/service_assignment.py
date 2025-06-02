@@ -1,7 +1,8 @@
 from pydantic import BaseModel, Field, model_validator, field_validator
-from typing import List, Dict, Optional
+from typing import List, Dict, Tuple, Optional
 from opspilot.models import ServiceType, EquipmentType, Flight
 from datetime import datetime, time
+from opspilot.utils import TimeRangeUtils
 
 class ServiceAssignment(BaseModel):
     id: int
@@ -35,22 +36,25 @@ class ServiceAssignment(BaseModel):
             return datetime.strptime(v, "%H:%M").time()
         return v
     
-    @property
-    def start_minutes(self):
-        if not self.start_time:
-            return None
-        return self.start_time.hour * 60 + self.start_time.minute
+    def minute_intervals(self, flight_map: Dict[str, Flight]) -> List[Tuple[int, int]]:
+        """
+        Returns the minute intervals for this service assignment.
+        
+        - If flight_number is set, resolves intervals using flight_map and relative times.
+        - Else returns intervals for common zone service using start_time and end_time.
+        - Raises ValueError if no valid time info is found.
+        """
+        if self.flight_number:
+            flight = flight_map.get(self.flight_number)
+            if not flight:
+                raise ValueError(f"Flight {self.flight_number} not found in flight_map")
 
-    @property
-    def end_minutes(self):
-        if not self.end_time:
-            return None
-        end_minutes = self.end_time.hour * 60 + self.end_time.minute
+            return flight.get_service_minute_intervals(self.relative_start, self.relative_end)
 
-        if end_minutes < (self.start_minutes or 0):
-            end_minutes += 24 * 60
-            
-        return end_minutes
+        if self.start_time and self.end_time:
+            start_str = self.start_time.strftime("%H:%M")
+            end_str = self.end_time.strftime("%H:%M")
+            return TimeRangeUtils.to_minute_ranges(start_str, end_str)
 
     @model_validator(mode='after')
     def validate_time_specification(self):
@@ -100,23 +104,6 @@ class ServiceAssignment(BaseModel):
 
         return self
 
-    def get_service_time_minutes(self, flight_map: Dict[str, Flight]) -> tuple[int, int]:
-        """
-        Returns (start_minutes, end_minutes) for this service assignment.
-        Resolves either relative or absolute time based on flight zone or common zone service.
-        """
-        if self.flight_number:
-            flight = flight_map.get(self.flight_number, None)
-
-            if flight is None:
-                raise ValueError(f"Flight {self.flight_number} not found in flight map")
-            
-            return flight.get_service_time_minutes(self.relative_start, self.relative_end)
-        if self.start_minutes is not None and self.end_minutes is not None:
-            return self.start_minutes, self.end_minutes
-        
-        raise ValueError(f"Invalid time configuration for service assignment {self.id}")
-    
     def __repr__(self):
         return (
             f"<ServiceAssignment(id={self.id}, service_id={self.service_id}, service_type={self.service_type}, "

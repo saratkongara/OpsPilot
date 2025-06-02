@@ -1,6 +1,7 @@
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Tuple
 from opspilot.models import Shift, Service, CertificationRequirement, ServiceType, ServiceAssignment
+from opspilot.utils import TimeRangeUtils
 
 class Staff(BaseModel):
     id: int
@@ -11,32 +12,18 @@ class Staff(BaseModel):
     priority_service_id: Optional[int] = None       # Strong preference for assignment
     rank_level: Optional[int] = 0                   # Lower number is higher priority
 
-    def is_available_for_service(self, service_start_minutes: int, service_end_minutes: int) -> bool:
+    def is_available_for_service(self, service_intervals: List[Tuple[int, int]]) -> bool:
         """
-        Checks if the staff has at least one shift that fully covers the service duration.
-        Service times are provided in minutes from midnight.
-        Returns False if no shift fully covers the entire service duration.
+        Checks if shifts of the staff fully cover all intervals of the given service.
+        Each service interval must be fully contained within some shift interval.
         """
-
-        # Normalize service_end if it's on the next day
-        if service_end_minutes < service_start_minutes:
-            service_end_minutes += 24 * 60  # next day
-
-        print(f"Checking availability for service from {service_start_minutes} to {service_end_minutes} minutes")
+        # Aggregate all shift intervals
+        all_shift_intervals = []
         for shift in self.shifts:
-            shift_start = shift.start_minutes
-            shift_end = shift.end_minutes
+            all_shift_intervals.extend(shift.minute_intervals)
 
-            # Normalize shift_end if it's on the next day
-            if shift_end < shift_start:
-                shift_end += 24 * 60  # next day
-
-            print(f"Checking shift from {shift_start} to {shift_end} minutes")
-            # Check if the shift fully covers the service time
-            if shift_start <= service_start_minutes and shift_end >= service_end_minutes:
-                return True  # Found a valid shift
-
-        return False  # No shift fully covers the service duration
+        # Check if all service intervals are fully covered by any shift interval
+        return TimeRangeUtils.are_fully_covered(service_intervals, all_shift_intervals)
     
     def is_certified_for_service(self, service: Service) -> bool:
         """
@@ -70,7 +57,7 @@ class Staff(BaseModel):
         
         return True
 
-    def can_perform_service(self, service: Service, service_start_minutes: int, service_end_minutes: int, service_assignment: ServiceAssignment) -> bool:
+    def can_perform_service(self, service: Service, service_intervals: List[Tuple[int, int]], service_assignment: ServiceAssignment) -> bool:
         """
         Checks if the staff can perform a given service based on availability, certification and eligibility.
         Args:
@@ -81,6 +68,6 @@ class Staff(BaseModel):
         Returns:
             bool: True if staff can perform the service, False otherwise
         """
-        return (self.is_available_for_service(service_start_minutes, service_end_minutes) and
+        return (self.is_available_for_service(service_intervals) and
                 self.is_certified_for_service(service) and
                 self.is_eligible_for_service(service_assignment))
