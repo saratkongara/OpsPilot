@@ -15,23 +15,28 @@ class Staff(BaseModel):
         """
         Checks if the staff has at least one shift that fully covers the service duration.
         Service times are provided in minutes from midnight.
+        Returns False if no shift fully covers the entire service duration.
         """
+
+        # Normalize service_end if it's on the next day
+        if service_end_minutes < service_start_minutes:
+            service_end_minutes += 24 * 60  # next day
+
+        print(f"Checking availability for service from {service_start_minutes} to {service_end_minutes} minutes")
         for shift in self.shifts:
             shift_start = shift.start_minutes
             shift_end = shift.end_minutes
 
-            normalized_service_start = service_start_minutes
-            normalized_service_end = service_end_minutes
+            # Normalize shift_end if it's on the next day
+            if shift_end < shift_start:
+                shift_end += 24 * 60  # next day
 
-            if service_start_minutes < shift_start:
-                normalized_service_start += 24 * 60
-            if service_end_minutes < shift_start:
-                normalized_service_end += 24 * 60
+            print(f"Checking shift from {shift_start} to {shift_end} minutes")
+            # Check if the shift fully covers the service time
+            if shift_start <= service_start_minutes and shift_end >= service_end_minutes:
+                return True  # Found a valid shift
 
-            if shift_start <= normalized_service_start and shift_end >= normalized_service_end:
-                return True
-
-        return False
+        return False  # No shift fully covers the service duration
     
     def is_certified_for_service(self, service: Service) -> bool:
         """

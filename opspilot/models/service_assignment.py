@@ -46,8 +46,10 @@ class ServiceAssignment(BaseModel):
         if not self.end_time:
             return None
         end_minutes = self.end_time.hour * 60 + self.end_time.minute
+
         if end_minutes < (self.start_minutes or 0):
             end_minutes += 24 * 60
+            
         return end_minutes
 
     @model_validator(mode='after')
