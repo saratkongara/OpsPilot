@@ -2,6 +2,7 @@ from ortools.sat.python import cp_model
 from typing import Optional, List, Dict, Tuple
 from opspilot.core.scheduler_result import SchedulerResult
 from opspilot.models import Service, Flight, Settings, AssignmentStrategy, Location, Department, ServiceAssignment
+from opspilot.models.staff import Staff
 from opspilot.services import OverlapDetectionService
 from opspilot.constraints import StaffCertificationConstraint, StaffEligibilityConstraint, StaffCountConstraint, StaffAvailabilityConstraint, StaffRoleConstraint
 from opspilot.constraints import ServiceTransitionConstraint, SingleServiceConstraint, FixedServiceConstraint, MultiTaskServiceConstraint
@@ -294,7 +295,7 @@ class Scheduler:
         pending_assignments = []
 
         for service_assignment in self.service_assignments:
-            remaining_staff_count = service_assignment.required_staff_count - service_coverage[service_assignment.id]
+            remaining_staff_count = service_assignment.staff_count - service_coverage[service_assignment.id]
             if remaining_staff_count > 0:
                 # Create a copy of the service assignment with updated staff count
                 pending_assignment = service_assignment.model_copy()
@@ -303,26 +304,27 @@ class Scheduler:
 
         return pending_assignments
 
-    def get_available_staff(self) -> Dict[int, List[ServiceAssignment]]:
+    def get_available_staff(self) -> List[Tuple[Staff, List[ServiceAssignment]]]:
         """
-        Get a dictionary of staff IDs to service assignments for staff who are not fully occupied.
+        Get a list of tuples where each tuple contains a Staff object and their assigned service assignments
+        for staff who are not fully occupied.
 
         Returns:
-            A dictionary {staff_id: [list of ServiceAssignment objects]} for available staff.
+            A list of tuples [(Staff, [list of ServiceAssignment objects])] for available staff.
         """
         staff_assignments = self.get_staff_assignments()
-        available_staff = {}
+        available_staff = []
 
-        for staff_id, service_assignment_ids in staff_assignments.items():
-            # Retrieve the assigned service assignments
+        for staff_id, assigned_service_ids in staff_assignments.items():
+            # Retrieve the Staff object and assigned service assignments
+            staff = self.staff_map[staff_id]
             assigned_service_assignments = [
-                self.service_assignment_map[service_assignment_id]
-                for service_assignment_id in service_assignment_ids
+                self.service_assignment_map[service_id]
+                for service_id in assigned_service_ids
             ]
 
             # Check if the staff is not assigned to any service or has time available
-            staff = self.staff_map[staff_id]
-            if not assigned_service_assignments or staff.has_time_available(assigned_service_assignments):
-                available_staff[staff_id] = assigned_service_assignments
+            if not assigned_service_assignments or staff.has_time_available(assigned_service_assignments, self.flight_map):
+                available_staff.append((staff, assigned_service_assignments))
 
         return available_staff

@@ -1,10 +1,12 @@
 from pydantic import BaseModel
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Dict
 from .enums import CertificationRequirement, ServiceType
 from .shift import Shift
 from .service import Service
-from .service_assignment import ServiceAssignment   
+from .service_assignment import ServiceAssignment
+from .flight import Flight
 from opspilot.utils import TimeRangeUtils
+
 
 class Staff(BaseModel):
     id: int
@@ -76,12 +78,13 @@ class Staff(BaseModel):
                 self.is_certified_for_service(service) and
                 self.is_eligible_for_service(service_assignment))
 
-    def has_time_available(self, assigned_service_assignments: List[ServiceAssignment]) -> bool:
+    def has_time_available(self, assigned_service_assignments: List[ServiceAssignment], flight_map: Dict[str, Flight]) -> bool:
         """
         Checks if the staff has time available to perform additional services.
 
         Args:
             assigned_service_assignments: List of service assignments already assigned to the staff.
+            flight_map: A dictionary mapping flight numbers to Flight objects.
 
         Returns:
             bool: True if the staff has time available, False otherwise.
@@ -89,7 +92,7 @@ class Staff(BaseModel):
         # Aggregate all assigned service intervals
         assigned_intervals = []
         for service_assignment in assigned_service_assignments:
-            assigned_intervals.extend(service_assignment.minute_intervals)
+            assigned_intervals.extend(service_assignment.minute_intervals(flight_map))
 
         # Aggregate all shift intervals
         all_shift_intervals = []

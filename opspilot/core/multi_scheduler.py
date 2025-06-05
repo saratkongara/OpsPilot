@@ -55,6 +55,13 @@ class MultiScheduler:
             settings=self.settings,
         )
 
-        return scheduler.run()
+        result = scheduler.run()
+
+        if result == SchedulerResult.FOUND:
+           pending_service_assignments = scheduler.get_pending_service_assignments()
+           available_staff = scheduler.get_available_staff()
+           print(f"Department: {department.name}, Pending Assignments: {len(pending_service_assignments)}, Available Staff: {len(available_staff)}")
+        
+        return result
 
         
