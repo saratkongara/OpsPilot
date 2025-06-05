@@ -1,0 +1,22 @@
+[
+  {
+    "id": 201,
+    "name": "Gate A1",
+    "parentId": 20
+  },
+  {
+    "id": 202,
+    "name": "Gate A2",
+    "parentId": 20
+  },
+  {
+    "id": 203,
+    "name": "Check-in Area",
+    "parentId": 20
+  },
+  {
+    "id": 204,
+    "name": "Baggage Claim",
+    "parentId": 20
+  }
+]

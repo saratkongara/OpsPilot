@@ -1,0 +1,42 @@
+[
+    {
+      "origin_location_id": 201,
+      "destination_location_id": 202,
+      "travel_minutes": 2
+    },
+    {
+      "origin_location_id": 202,
+      "destination_location_id": 201,
+      "travel_minutes": 2
+    },
+    {
+      "origin_location_id": 201,
+      "destination_location_id": 203,
+      "travel_minutes": 5
+    },
+    {
+      "origin_location_id": 203,
+      "destination_location_id": 201,
+      "travel_minutes": 5
+    },
+    {
+      "origin_location_id": 201,
+      "destination_location_id": 204,
+      "travel_minutes": 6
+    },
+    {
+      "origin_location_id": 204,
+      "destination_location_id": 201,
+      "travel_minutes": 6
+    },
+    {
+      "origin_location_id": 202,
+      "destination_location_id": 203,
+      "travel_minutes": 3
+    },
+    {
+      "origin_location_id": 203,
+      "destination_location_id": 202,
+      "travel_minutes": 3
+    }
+  ]

@@ -1,0 +1,29 @@
+[
+    {
+      "id": 101,
+      "name": "Alice",
+      "shifts": [{"start_time": "14:00", "end_time": "18:00"}],
+      "certifications": [1],
+      "eligible_for_services": ["S"],
+      "priority_service_id": null,
+      "rank_level": 1
+    },
+    {
+      "id": 102,
+      "name": "Bob",
+      "shifts": [{"start_time": "14:00", "end_time": "18:00"}],
+      "certifications": [2, 3],
+      "eligible_for_services": ["S", "F"],
+      "priority_service_id": null,
+      "rank_level": 2
+    },
+    {
+      "id": 103,
+      "name": "Charlie",
+      "shifts": [{"start_time": "15:00", "end_time": "19:00"}],
+      "certifications": [4],
+      "eligible_for_services": ["F"],
+      "priority_service_id": null,
+      "rank_level": 1
+    }
+]
