@@ -19,8 +19,8 @@ Feature: Multi Staff Assignment
       | AA123    | 12:30        | 14:00          |
 
     And the following locations exist:
-      | id | name   | location_type |
-      | 1  | Bay 44 | Bay           |
+      | id | name   |
+      | 1  | Bay 44 |
 
     And the following service assignments exist:
       | id | service_id | staff_count | priority | location_id | flight_number | relative_start | relative_end | service_type |

@@ -15,8 +15,8 @@ Feature: Staff Eligibility Constraint
       | 1  | Cleaning | [1]            | All         |
 
     And the following locations exist:
-      | id | name       | location_type |
-      | 1  | Terminal A | Terminal      |
+      | id | name       |
+      | 1  | Terminal A |
 
     And the following service assignments exist:
       | id | service_id | location_id | staff_count | start_time | end_time | service_type |
@@ -49,8 +49,8 @@ Feature: Staff Eligibility Constraint
       | 1  | Cleaning | [1]            | All         |
 
     And the following locations exist:
-      | id | name   | location_type |
-      | 1  | Bay 10 | Bay           |
+      | id | name   |
+      | 1  | Bay 10 |
 
     And the following service assignments exist:
       | id | service_id | location_id | staff_count | start_time | end_time | service_type |

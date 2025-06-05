@@ -19,8 +19,8 @@ Feature: Multi-task Service Constraints on a Flight
       | FL200  | 09:00        | 11:00          |
 
     And the following locations exist:
-      | id | name   | location_type |
-      | 1  | Bay 44 | Bay           |
+      | id | name   |
+      | 1  | Bay 44 |
 
     And the following service assignments exist:
       | id | service_id | staff_count | location_id | flight_number | relative_start | relative_end | service_type | priority | multi_task_limit | exclude_services |
@@ -55,8 +55,8 @@ Feature: Multi-task Service Constraints on a Flight
       | FL300  | 09:00        | 11:00          |
 
     And the following locations exist:
-      | id | name   | location_type |
-      | 1  | Bay 45 | Bay           |
+      | id | name   |
+      | 1  | Bay 45 |
 
     And the following service assignments exist:
       | id | service_id | staff_count | location_id | flight_number | relative_start | relative_end | service_type | priority | multi_task_limit | exclude_services |
@@ -90,8 +90,8 @@ Feature: Multi-task Service Constraints on a Flight
       | FL200  | 09:00        | 11:00          |
 
     And the following locations exist:
-      | id | name   | location_type |
-      | 1  | Bay 44 | Bay           |
+      | id | name   |
+      | 1  | Bay 44 |
 
     And the following service assignments exist:
       | id | service_id | staff_count | location_id | flight_number | relative_start | relative_end | service_type | priority | multi_task_limit | exclude_services |
@@ -127,8 +127,8 @@ Feature: Multi-task Service Constraints on a Flight
       | FL400  | 09:00        | 11:00          |
 
     And the following locations exist:
-      | id | name   | location_type |
-      | 1  | Bay 46 | Bay           |
+      | id | name   |
+      | 1  | Bay 46 |
 
     And the following service assignments exist:
       | id | service_id | staff_count | location_id | flight_number | relative_start | relative_end | service_type | priority | multi_task_limit | exclude_services |

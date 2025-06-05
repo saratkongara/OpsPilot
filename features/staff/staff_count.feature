@@ -15,8 +15,8 @@ Feature: Staff Count Constraint
       | 1  | Security | [1, 2]         | All         |
   
     And the following locations exist:
-      | id | name       | location_type |
-      | 1  | Terminal A | Terminal      |
+      | id | name       |
+      | 1  | Terminal A |
 
     And the following service assignments exist:
       | id | service_id | location_id | staff_count | start_time | end_time | service_type |
@@ -39,8 +39,8 @@ Feature: Staff Count Constraint
       | 1  | Security | [1, 2]         | All         |
 
     And the following locations exist:
-      | id | name       | location_type |
-      | 1  | Terminal A | Terminal      |
+      | id | name       |
+      | 1  | Terminal A |
 
     And the following service assignments exist:
       | id | service_id | location_id | staff_count | start_time | end_time | service_type |
@@ -68,8 +68,8 @@ Feature: Staff Count Constraint
       | 1  | Cleaning| [1, 2]         | All         |
 
     And the following locations exist:
-      | id | name       | location_type |
-      | 1  | Terminal A | Terminal      |
+      | id | name       |
+      | 1  | Terminal A |
 
     And the following service assignments exist:
       | id | service_id | location_id | staff_count | start_time | end_time | service_type |

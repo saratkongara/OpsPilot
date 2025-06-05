@@ -1,22 +1,18 @@
 [
   {
     "id": 101,
-    "name": "Gate A1",
-    "location_type": "Gate" 
+    "name": "Gate A1"
   },
   {
     "id": 102,
-    "name": "Gate A2",
-    "location_type": "Gate"
+    "name": "Gate A2"
   },
   {
     "id": 201,
-    "name": "Check-in Area",
-    "location_type": "Zone"
+    "name": "Check-in Area"
   },
   {
     "id": 202,
-    "name": "Baggage Claim",
-    "location_type": "Zone"
+    "name": "Baggage Claim"
   }
 ]

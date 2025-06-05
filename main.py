@@ -1,7 +1,7 @@
 from opspilot.core import Scheduler, SchedulerResult
 from opspilot.models import (
     Flight, Service, Staff, Shift, ServiceAssignment, TravelTime, Settings,
-    CertificationRequirement, ServiceType, Location, LocationType
+    CertificationRequirement, ServiceType, Location
 )
 from typing import List
 import json
@@ -10,10 +10,8 @@ def load_json(file_path: str):
     with open(file_path, "r") as f:
         return json.load(f)
 
-
 def load_flights(file_path: str) -> List[Flight]:
     return [Flight(**f) for f in load_json(file_path)]
-
 
 def load_services(file_path: str) -> List[Service]:
     services = load_json(file_path)
@@ -27,7 +25,6 @@ def load_services(file_path: str) -> List[Service]:
         for s in services
     ]
 
-
 def load_roster(file_path: str) -> List[Staff]:
     roster_data = load_json(file_path)
     return [
@@ -39,7 +36,6 @@ def load_roster(file_path: str) -> List[Staff]:
         )
         for staff in roster_data
     ]
-
 
 def load_service_assignments(file_path: str) -> List[ServiceAssignment]:
     assignments = load_json(file_path)
@@ -53,22 +49,11 @@ def load_service_assignments(file_path: str) -> List[ServiceAssignment]:
         for a in assignments
     ]
 
-
 def load_travel_times(file_path: str) -> List[TravelTime]:
     return [TravelTime(**t) for t in load_json(file_path)]
 
-
 def load_locations(file_path: str) -> List[Location]:
-    locations = load_json(file_path)
-    return [
-        Location(
-            **{
-                **l,
-                 "location_type": LocationType(l["location_type"])
-            }
-        )
-        for l in locations
-    ]
+    return [Location(**l) for l in load_json(file_path)] 
 
 def run():
     flights = load_flights("data/flights.json")

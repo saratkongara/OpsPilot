@@ -19,9 +19,9 @@ Feature: Flight Priority-Based Assignment
       | FL200  | 09:00        | 11:00          |
 
     And the following locations exist:
-      | id | name   | location_type |
-      | 1  | Bay 44 | Bay           |
-      | 2  | Bay 47 | Bay           |
+      | id | name   |
+      | 1  | Bay 44 |
+      | 2  | Bay 47 |
 
     And the following service assignments exist:
       | id | service_id | staff_count | location_id | flight_number | priority | relative_start | relative_end | service_type |

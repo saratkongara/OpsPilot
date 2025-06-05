@@ -1,4 +1,4 @@
-from opspilot.models import ServiceAssignment, ServiceType, Location, LocationType
+from opspilot.models import ServiceAssignment, ServiceType, Location
 from .parser_util import ParserUtil
 
 class ServiceAssignmentsBuilder:
@@ -21,8 +21,7 @@ class ServiceAssignmentsBuilder:
                 flight_number = f'{fwt.flight_arrival_no}-{fwt.flight_departure_no}'
 
             location = Location(id=location_id_counter,
-                                name=f'Location_{location_id_counter}',
-                                location_type=LocationType.BAY)
+                                name=f'Location_{location_id_counter}')
 
             for task in fwt.tasks:
                 service_assignment = ServiceAssignment(
@@ -49,8 +48,7 @@ class ServiceAssignmentsBuilder:
                 end_time = ParserUtil.extract_time(task.end_sla)
 
                 location = Location(id=location_id_counter,
-                                    name=f'Location_{location_id_counter}',
-                                    location_type=LocationType.ZONE)
+                                    name=f'Location_{location_id_counter}')
                 
                 service_assignment = ServiceAssignment(
                     id=service_id_counter,

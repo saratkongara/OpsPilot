@@ -13,8 +13,8 @@ Feature: Any Certification Requirement Check
       | 1  | Baggage | [1, 2]         | Any         |
 
     And the following locations exist:
-      | id | name       | location_type |
-      | 1  | Terminal A | Terminal      |
+      | id | name       |
+      | 1  | Terminal A |
 
     And the following service assignments exist:
       | id | service_id | staff_count | location_id | start_time | end_time | service_type |
@@ -40,8 +40,8 @@ Feature: Any Certification Requirement Check
       | 1  | Baggage | [1, 2]         | Any         |
 
     And the following locations exist:
-      | id | name       | location_type |
-      | 1  | Terminal A | Terminal      |
+      | id | name       |
+      | 1  | Terminal A |
 
     And the following service assignments exist:
       | id | service_id | staff_count | location_id | start_time | end_time | service_type |

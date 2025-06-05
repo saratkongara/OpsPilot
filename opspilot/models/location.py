@@ -1,11 +1,9 @@
 from pydantic import BaseModel
 from typing import List, Dict, Optional
-from opspilot.models.enums import LocationType
 
 class Location(BaseModel):
     id: int
     name: str
-    location_type: LocationType
     parent_id: Optional[int] = None
         
     def get_children(self, location_map: Dict[int, 'Location']) -> List['Location']:
@@ -34,4 +32,4 @@ class Location(BaseModel):
             child.parent_id = None
     
     def __repr__(self):
-        return f"<Location(id={self.id}, name={self.name}, type={self.location_type}, parent_id={self.parent_id})>"
+        return f"<Location(id={self.id}, name={self.name}, parent_id={self.parent_id})>"

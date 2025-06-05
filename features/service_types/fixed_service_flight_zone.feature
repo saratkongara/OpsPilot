@@ -18,8 +18,8 @@ Feature: Fixed Service Assignment in FlightZone
       | FL101  | 09:00        | 11:00          |
 
     And the following locations exist:
-      | id | name   | location_type |
-      | 1  | Bay 12 | Bay           |
+      | id | name   |
+      | 1  | Bay 12 |
 
     And the following service assignments exist:
       | id | service_id | staff_count | location_id | flight_number | relative_start | relative_end | service_type | priority |
@@ -53,8 +53,8 @@ Feature: Fixed Service Assignment in FlightZone
       | FL200  | 09:00        | 11:00          |
 
     And the following locations exist:
-      | id | name   | location_type |
-      | 1  | Bay 44 | Bay           |
+      | id | name   |
+      | 1  | Bay 44 |
 
     And the following service assignments exist:
       | id | service_id | staff_count | location_id | flight_number | relative_start | relative_end | service_type | priority |
@@ -90,8 +90,8 @@ Feature: Fixed Service Assignment in FlightZone
       | FL301  | 11:00        | 12:00          |
 
     And the following locations exist:
-      | id | name   | location_type |
-      | 1  | Bay 10 | Bay           |
+      | id | name   |
+      | 1  | Bay 10 |
 
     And the following service assignments exist:
       | id | service_id | staff_count | location_id | flight_number | relative_start | relative_end | service_type | priority |

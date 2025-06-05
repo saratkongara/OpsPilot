@@ -5,7 +5,7 @@ from opspilot.models import Staff, Service, Flight, ServiceAssignment, TravelTim
 from opspilot.services import OverlapDetectionService
 from opspilot.constraints import StaffCertificationConstraint, StaffEligibilityConstraint, StaffCountConstraint, StaffAvailabilityConstraint, StaffRoleConstraint
 from opspilot.constraints import ServiceTransitionConstraint, SingleServiceConstraint, FixedServiceConstraint, MultiTaskServiceConstraint
-from opspilot.strategies import MinimizeStaffStrategy, BalanceWorkloadStrategy
+from opspilot.strategies import MinimizeStaffStrategy, BalanceWorkloadStrategy, TurnaroundWorkloadStrategy
 from opspilot.plans import AllocationPlan
 from time import time
 import logging
@@ -162,7 +162,13 @@ class Scheduler:
                 roster=self.roster,
                 service_assignment_map=self.service_assignment_map,
                 staff_map=self.staff_map,
-            )  
+            ) 
+        elif assignment_strategy == AssignmentStrategy.TURNAROUND_WORKLOAD:
+            strategy = TurnaroundWorkloadStrategy(
+                roster=self.roster,
+                service_assignment_map=self.service_assignment_map,
+                staff_map=self.staff_map,
+            )
         else:
             raise ValueError(f"Unknown assignment strategy: {strategy}")
         

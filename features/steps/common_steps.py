@@ -77,7 +77,6 @@ def setup_locations(context, locations_table):
             Location(
                 id=int(row['id']),
                 name=row['name'],
-                location_type=row['location_type'],
                 parent_id=int(row['parent_id']) if row.get('parent_id') else None,
             )
         )

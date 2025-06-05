@@ -18,9 +18,9 @@ Feature: Service Transition Constraints
       | FL102  | 09:45        | 10:45          |
 
     And the following locations exist:
-      | id | name   | location_type |
-      | 1  | Bay A  | Bay           |
-      | 2  | Bay B  | Bay           |
+      | id | name   |
+      | 1  | Bay A  |
+      | 2  | Bay B  |
 
     And the following service assignments exist:
       | id | service_id | staff_count | location_id | flight_number | relative_start | relative_end | service_type |
@@ -61,9 +61,9 @@ Feature: Service Transition Constraints
       | FL202  | 09:00        | 10:45          |
 
     And the following locations exist:
-      | id | name   | location_type |
-      | 1  | Bay X  | Bay           |
-      | 2  | Bay Y  | Bay           |
+      | id | name   |
+      | 1  | Bay X  |
+      | 2  | Bay Y  |
 
     And the following travel times exist:
       | origin_location_id | destination_location_id | travel_minutes |
@@ -106,9 +106,9 @@ Feature: Service Transition Constraints
       | FL302  | 09:00        | 10:15          |
 
     And the following locations exist:
-      | id | name   | location_type |
-      | 1  | Bay 1  | Bay           |
-      | 2  | Bay 2  | Bay           |
+      | id | name   |
+      | 1  | Bay 1  |
+      | 2  | Bay 2  |
 
     And the following travel times exist:
       | origin_location_id | destination_location_id | travel_minutes |

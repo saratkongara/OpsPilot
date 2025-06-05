@@ -17,8 +17,8 @@ Feature: Staff Availability Constraints
       | FL101  | 09:00        | 11:00          |
     
     And the following locations exist:
-      | id | name   | location_type |
-      | 1  | Bay 44 | Bay           |
+      | id | name   |
+      | 1  | Bay 44 |
 
     And the following service assignments exist:
       | id | service_id | location_id | staff_count | flight_number | relative_start | relative_end | service_type |
@@ -48,8 +48,8 @@ Feature: Staff Availability Constraints
       | FL102  | 09:00        | 11:00          |
     
     And the following locations exist:
-      | id | name   | location_type |
-      | 1  | Bay 44 | Bay           |
+      | id | name   |
+      | 1  | Bay 44 |
 
     And the following service assignments exist:
       | id | service_id | location_id | staff_count | flight_number | relative_start | relative_end | service_type |
@@ -80,8 +80,8 @@ Feature: Staff Availability Constraints
       | FL201  | 01:00        | 03:00          |
     
     And the following locations exist:
-      | id | name   | location_type |
-      | 1  | Bay 44 | Bay           |
+      | id | name   |
+      | 1  | Bay 44 |
 
     And the following service assignments exist:
       | id | service_id | location_id | staff_count | flight_number | relative_start | relative_end | service_type |
@@ -112,8 +112,8 @@ Feature: Staff Availability Constraints
       | FL301  | 23:30        | 01:30          |
 
     And the following locations exist:
-      | id | name   | location_type |
-      | 1  | Bay 44 | Bay           |
+      | id | name   |
+      | 1  | Bay 44 |
 
     And the following service assignments exist:
       | id | service_id | location_id | staff_count | flight_number | relative_start | relative_end | service_type |
@@ -144,8 +144,8 @@ Feature: Staff Availability Constraints
       | FL202  | 01:00        | 03:00          |
     
     And the following locations exist:
-      | id | name   | location_type |
-      | 1  | Bay 44 | Bay           |
+      | id | name   |
+      | 1  | Bay 44 |
 
     And the following service assignments exist:
       | id | service_id | location_id | staff_count | flight_number | relative_start | relative_end | service_type |
@@ -176,8 +176,8 @@ Feature: Staff Availability Constraints
       | FL301  | 23:30         | 01:30         |
 
     And the following locations exist:
-      | id | name   | location_type |
-      | 1  | Bay 44 | Bay           |
+      | id | name   |
+      | 1  | Bay 44 |
 
     And the following service assignments exist:
       | id | service_id | location_id | staff_count | flight_number | relative_start | relative_end | service_type |
@@ -203,8 +203,8 @@ Feature: Staff Availability Constraints
       | 2  | Wheelchair | [2]            | All         |
 
     And the following locations exist:
-      | id | name       | location_type |
-      | 1  | Terminal A | Terminal      |
+      | id | name       |
+      | 1  | Terminal A |
 
     And the following service assignments exist:
       | id | service_id | staff_count | location_id | start_time | end_time | service_type |
@@ -230,8 +230,8 @@ Feature: Staff Availability Constraints
       | 2  | Wheelchair | [2]            | All         |
       
     And the following locations exist:
-      | id | name       | location_type |
-      | 1  | Terminal A | Terminal      |
+      | id | name       |
+      | 1  | Terminal A |
 
     And the following service assignments exist:
       | id | service_id | staff_count | location_id | start_time | end_time | service_type |
@@ -259,8 +259,8 @@ Feature: Staff Availability Constraints
       | 4  | Night Patrol  | [4]            | All         |
     
     And the following locations exist:
-      | id | name       | location_type |
-      | 1  | Zone A     | Zone          |
+      | id | name       |
+      | 1  | Zone A     |
 
     And the following service assignments exist:
       | id | service_id | staff_count | location_id | start_time | end_time | service_type |
@@ -287,8 +287,8 @@ Feature: Staff Availability Constraints
       | 6  | Night Refueling | [6]            | All         |
 
     And the following locations exist:
-      | id | name     | location_type |
-      | 1  | Zone A   | Zone          |
+      | id | name     |
+      | 1  | Zone A   |
 
     And the following service assignments exist:
       | id | service_id | staff_count | location_id | start_time | end_time | service_type |
@@ -315,8 +315,8 @@ Feature: Staff Availability Constraints
       | 4  | Night Patrol  | [4]            | All         |
     
     And the following locations exist:
-      | id | name       | location_type |
-      | 1  | Zone A     | Zone          |
+      | id | name       |
+      | 1  | Zone A     |
 
     And the following service assignments exist:
       | id | service_id | staff_count | location_id | start_time | end_time | service_type |
@@ -343,8 +343,8 @@ Feature: Staff Availability Constraints
       | 6  | Night Refueling | [6]            | All         |
 
     And the following locations exist:
-      | id | name       | location_type |
-      | 1  | Zone A     | Zone          |
+      | id | name       |
+      | 1  | Zone A     |
 
     And the following service assignments exist:
       | id | service_id | staff_count | location_id | start_time | end_time | service_type |

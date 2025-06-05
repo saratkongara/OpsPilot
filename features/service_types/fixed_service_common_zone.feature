@@ -14,8 +14,8 @@ Feature: Fixed Service Assignment in CommonZone
       | 2  | Cleaning | [2]            | All         |
 
     And the following locations exist:
-      | id | name       | location_type |
-      | 1  | Terminal A | Terminal      |
+      | id | name       |
+      | 1  | Terminal A |
 
     And the following service assignments exist:
       | id | service_id | staff_count | location_id | start_time | end_time | service_type | priority |
@@ -45,8 +45,8 @@ Feature: Fixed Service Assignment in CommonZone
       | 3  | Guide    | [3]            | All         |
 
     And the following locations exist:
-      | id | name       | location_type |
-      | 1  | Terminal A | Terminal      |
+      | id | name       |
+      | 1  | Terminal A |
 
     And the following service assignments exist:
       | id | service_id | staff_count | location_id | start_time | end_time | service_type | priority |
@@ -77,8 +77,8 @@ Feature: Fixed Service Assignment in CommonZone
       | 2  | Cleaning | [1]            | All         |
 
     And the following locations exist:
-      | id | name       | location_type |
-      | 1  | Terminal A | Terminal      |
+      | id | name       |
+      | 1  | Terminal A |
 
     And the following service assignments exist:
       | id | service_id | staff_count | location_id | start_time | end_time | service_type | priority |
