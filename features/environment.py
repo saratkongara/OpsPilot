@@ -14,6 +14,7 @@ def before_scenario(context, scenario):
     context.flight_map = {}
     context.travel_time_map = {}
     context.overlap_map = {}
+    context.department = None
     context.scheduler = None
 
     if 'wip' in scenario.effective_tags:

@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field, model_validator, field_validator
 from typing import List, Dict, Tuple, Optional
-from opspilot.models import ServiceType, EquipmentType, Flight
+from .enums import ServiceType, EquipmentType
+from .flight import Flight
 from datetime import datetime, time
 from opspilot.utils import TimeRangeUtils
 

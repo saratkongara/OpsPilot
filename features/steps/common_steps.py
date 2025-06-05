@@ -1,6 +1,5 @@
 from behave import given, when, then
-from opspilot.models import Staff, Service, Flight, Location, ServiceAssignment, ServiceType
-from opspilot.models import EquipmentType, Shift, CertificationRequirement, Settings, TravelTime
+from opspilot.models import Staff, Service, Flight, Location, ServiceAssignment, ServiceType, EquipmentType, Shift, CertificationRequirement, Settings, TravelTime, Department
 from opspilot.services import OverlapDetectionService
 from opspilot.core.scheduler import Scheduler
 import ast
@@ -196,14 +195,22 @@ def step_impl(context):
 
 @when('the scheduler runs')
 def step_impl(context):
-    context.scheduler = Scheduler(
+    context.department = Department(
+        id=1,
+        name="Ground Operations",
         roster=context.staff,
+        service_assignments=context.service_assignments,
+        travel_times=context.travel_times
+    )
+
+    context.scheduler = Scheduler(
+        department=context.department,
         services=context.services,
         flights=context.flights,
-        service_assignments=context.service_assignments,
-        travel_times=context.travel_times,
         settings=context.settings
     )
+
+    # Run the scheduler
     context.scheduler.run()
 
 @then('the assignments should be')
