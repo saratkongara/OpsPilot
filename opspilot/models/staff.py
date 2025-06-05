@@ -75,3 +75,26 @@ class Staff(BaseModel):
         return (self.is_available_for_service(service_intervals) and
                 self.is_certified_for_service(service) and
                 self.is_eligible_for_service(service_assignment))
+
+    def has_time_available(self, assigned_service_assignments: List[ServiceAssignment]) -> bool:
+        """
+        Checks if the staff has time available to perform additional services.
+
+        Args:
+            assigned_service_assignments: List of service assignments already assigned to the staff.
+
+        Returns:
+            bool: True if the staff has time available, False otherwise.
+        """
+        # Aggregate all assigned service intervals
+        assigned_intervals = []
+        for service_assignment in assigned_service_assignments:
+            assigned_intervals.extend(service_assignment.minute_intervals)
+
+        # Aggregate all shift intervals
+        all_shift_intervals = []
+        for shift in self.shifts:
+            all_shift_intervals.extend(shift.minute_intervals)
+
+        # Check if there is any time available in the shifts after accounting for assigned intervals
+        return TimeRangeUtils.has_available_time(all_shift_intervals, assigned_intervals)

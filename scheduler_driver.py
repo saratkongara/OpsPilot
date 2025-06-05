@@ -31,10 +31,6 @@ def run():
     result = scheduler.run()
 
     if result == SchedulerResult.FOUND:
-        assignments = scheduler.get_assignments()
-        for staff_id, assignment_id in assignments.items():
-            print(f"Staff ID {staff_id} assigned to Service Assignment ID {assignment_id}") 
-    
         location_map = {location.id: location for location in locations}
         
         staff_schedule = scheduler.get_allocation_plan(location_map).staff_schedule()
