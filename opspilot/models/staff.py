@@ -11,6 +11,7 @@ from opspilot.utils import TimeRangeUtils
 class Staff(BaseModel):
     id: int
     name: str
+    department_id: int  # ID of the department this staff belongs to
     shifts: List[Shift]
     certifications: List[int]
     eligible_for_services: List[ServiceType]
@@ -78,26 +79,40 @@ class Staff(BaseModel):
                 self.is_certified_for_service(service) and
                 self.is_eligible_for_service(service_assignment))
 
-    def has_time_available(self, assigned_service_assignments: List[ServiceAssignment], flight_map: Dict[str, Flight]) -> bool:
+    def available_intervals(self, assigned_service_assignments: List[ServiceAssignment], flight_map: Dict[str, Flight], travel_time: int = 0) -> List[Tuple[int, int],]:
         """
-        Checks if the staff has time available to perform additional services.
+        Checks if the staff has time available to perform additional services, accounting for travel time.
 
         Args:
             assigned_service_assignments: List of service assignments already assigned to the staff.
             flight_map: A dictionary mapping flight numbers to Flight objects.
+            travel_time: Time in minutes to add as buffer before and after each assigned interval.
 
         Returns:
-            bool: True if the staff has time available, False otherwise.
+            List[Tuple[int, int]]: List of available time intervals (start, end) in minutes.
         """
         # Aggregate all assigned service intervals
         assigned_intervals = []
         for service_assignment in assigned_service_assignments:
-            assigned_intervals.extend(service_assignment.minute_intervals(flight_map))
+            for start, end in service_assignment.minute_intervals(flight_map):
+                assigned_intervals.append((start, end))
 
         # Aggregate all shift intervals
         all_shift_intervals = []
         for shift in self.shifts:
             all_shift_intervals.extend(shift.minute_intervals)
 
-        # Check if there is any time available in the shifts after accounting for assigned intervals
-        return TimeRangeUtils.has_available_time(all_shift_intervals, assigned_intervals)
+        # Find earliest shift start and latest shift end
+        earliest_shift_start = min([start for start, _ in all_shift_intervals]) if all_shift_intervals else 0
+        latest_shift_end = max([end for _, end in all_shift_intervals]) if all_shift_intervals else 0
+
+        # Apply travel time buffer to assigned intervals
+        buffered_intervals = []
+        for start, end in assigned_intervals:
+            # Apply travel time with limits
+            buffered_start = max(earliest_shift_start, start - travel_time)
+            buffered_end = min(latest_shift_end, end + travel_time)
+            buffered_intervals.append((buffered_start, buffered_end))
+
+        # Check for available time intervals considering travel time
+        return TimeRangeUtils.available_intervals(all_shift_intervals, buffered_intervals)

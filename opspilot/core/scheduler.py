@@ -304,17 +304,17 @@ class Scheduler:
 
         return pending_assignments
 
-    def get_available_staff(self) -> List[Tuple[Staff, List[ServiceAssignment]]]:
+    def get_available_staff(self, travel_time: int = 0) -> List[Tuple[Staff, List[Tuple[int, int]]]]:
         """
         Get a list of tuples where each tuple contains a Staff object and their assigned service assignments
         for staff who are not fully occupied.
 
         Returns:
-            A list of tuples [(Staff, [list of ServiceAssignment objects])] for available staff.
+            A list of tuples [(Staff, [list of available time intervals])] for available staff.
         """
         staff_assignments = self.get_staff_assignments()
         available_staff = []
-
+        
         for staff_id, assigned_service_ids in staff_assignments.items():
             # Retrieve the Staff object and assigned service assignments
             staff = self.staff_map[staff_id]
@@ -324,7 +324,8 @@ class Scheduler:
             ]
 
             # Check if the staff is not assigned to any service or has time available
-            if not assigned_service_assignments or staff.has_time_available(assigned_service_assignments, self.flight_map):
-                available_staff.append((staff, assigned_service_assignments))
+            available_intervals = staff.available_intervals(assigned_service_assignments, self.flight_map, travel_time)
+            if available_intervals:
+                available_staff.append((staff, available_intervals))
 
         return available_staff
