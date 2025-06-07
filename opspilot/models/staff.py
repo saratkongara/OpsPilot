@@ -6,6 +6,7 @@ from opspilot.utils import TimeRangeUtils
 class Staff(BaseModel):
     id: int
     name: str
+    department_id: int  # ID of the department this staff belongs to
     shifts: List[Shift]
     certifications: List[int]
     eligible_for_services: List[ServiceType]

@@ -7,6 +7,7 @@ from opspilot.utils import TimeRangeUtils
 class ServiceAssignment(BaseModel):
     id: int
     service_id: int   # Id of the service to be assigned
+    department_id: int  # ID of the department this service assignment belongs to
     priority: float   # Combined priority for this specific service assignment (flight_priority.service_priority). First flight priority followed by service priority. Lower number is higher priority
     staff_count: int  # Number of staff required for this service assignment
     location_id: int  # Location where the service will be performed
