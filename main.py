@@ -1,5 +1,8 @@
 from opspilot.core import Scheduler, SchedulerResult
-from opspilot.models import Flight, Service, Staff, Shift, ServiceAssignment, TravelTime, Settings, CertificationRequirement, ServiceType, Location, Department
+from opspilot.models import (
+    Flight, Service, Staff, Shift, ServiceAssignment, TravelTime, Settings,
+    CertificationRequirement, ServiceType, Location
+)
 from typing import List
 import json
 
@@ -59,22 +62,15 @@ def run():
     service_assignments = load_service_assignments("data/service_assignments.json")
     travel_times = load_travel_times("data/travel_times.json")
     locations = load_locations("data/locations.json")
-    
     settings = Settings()
-   
-    department = Department(
-        id=1,
-        name="Ground Operations",
-        roster=roster,
-        service_assignments=service_assignments,
-        travel_times=travel_times
-    )
 
     scheduler = Scheduler(
-        department=department,
+        roster=roster,
         services=services,
         flights=flights,
-        settings=settings
+        service_assignments=service_assignments,
+        settings=settings,
+        travel_times=travel_times
     )
 
     result = scheduler.run()

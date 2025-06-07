@@ -1,7 +1,7 @@
 from ortools.sat.python import cp_model
 from typing import Optional, List, Dict, Tuple
 from opspilot.core.scheduler_result import SchedulerResult
-from opspilot.models import Staff, Service, Flight, ServiceAssignment, TravelTime, Settings, AssignmentStrategy, Location, Department
+from opspilot.models import Staff, Service, Flight, ServiceAssignment, TravelTime, Settings, AssignmentStrategy, Location
 from opspilot.services import OverlapDetectionService
 from opspilot.constraints import StaffCertificationConstraint, StaffEligibilityConstraint, StaffCountConstraint, StaffAvailabilityConstraint, StaffRoleConstraint
 from opspilot.constraints import ServiceTransitionConstraint, SingleServiceConstraint, FixedServiceConstraint, MultiTaskServiceConstraint
@@ -16,28 +16,28 @@ logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 class Scheduler:
     def __init__(
         self,
-        department: Department,
+        roster: List[Staff],
         services: List[Service],
         flights: List[Flight],
+        service_assignments: List[ServiceAssignment],
         settings: Settings,
+        travel_times: Optional[List[TravelTime]] = [],
         hints: Optional[AllocationPlan] = None
     ):
         """
         Initialize the scheduler with input data.
         
         Args:
-            department: The department containing staff, service assignments, and travel times
+            roster: List of available staff members
+            service_assignments: List of service assignments that need staff
             services: List of services with their certification requirements
-            flights: List of flights to consider in scheduling
             settings: Configuration parameters for scheduling
-            hints: Optional previous assignments for continuity (staff_id -> service_assignment_id -> assigned)
+            previous_assignments: Optional previous assignments for continuity (staff_id -> service_assignment_id -> assigned)
         """
-        self.roster = department.roster
-        self.service_assignments = department.service_assignments
-        self.travel_times = department.travel_times
-
+        self.roster = roster
         self.services = services
         self.flights = flights
+        self.service_assignments = service_assignments
         self.settings = settings
         self.hints = hints
         
@@ -49,11 +49,11 @@ class Scheduler:
         self.assignment_vars: Dict[Tuple[int, int], cp_model.IntVar] = {}
         
         # Lookup maps
-        self.staff_map = {staff.id: staff for staff in self.roster}
-        self.service_assignment_map = {service_assignment.id: service_assignment for service_assignment in self.service_assignments}
+        self.staff_map = {staff.id: staff for staff in roster}
+        self.service_assignment_map = {service_assignment.id: service_assignment for service_assignment in service_assignments}
         self.service_map = {service.id: service for service in services}
         self.flight_map = {flight.number: flight for flight in flights}
-        self.travel_time_map = {(travel_time.origin_location_id, travel_time.destination_location_id): travel_time.travel_minutes for travel_time in self.travel_times}
+        self.travel_time_map = {(travel_time.origin_location_id, travel_time.destination_location_id): travel_time.travel_minutes for travel_time in travel_times}
         
         # Initialize overlap detector
         overlap_detector = OverlapDetectionService(

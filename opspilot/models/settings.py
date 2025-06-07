@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from .enums import AssignmentStrategy
+from opspilot.models.enums import AssignmentStrategy
 
 class Settings(BaseModel):
     """

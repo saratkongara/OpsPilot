@@ -1,9 +1,6 @@
 from pydantic import BaseModel
 from typing import List, Optional, Tuple
-from .enums import CertificationRequirement, ServiceType
-from .shift import Shift
-from .service import Service
-from .service_assignment import ServiceAssignment   
+from opspilot.models import Shift, Service, CertificationRequirement, ServiceType, ServiceAssignment
 from opspilot.utils import TimeRangeUtils
 
 class Staff(BaseModel):

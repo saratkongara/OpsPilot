@@ -1,5 +1,4 @@
 from .certification import Certification
-from .department import Department
 from .enums import (
     CertificationRequirement,
     EquipmentType,
@@ -16,7 +15,7 @@ from .staff import Staff
 from .travel_time import TravelTime
 
 __all__ = [
-    'Certification', 'Department', 'CertificationRequirement', 'EquipmentType',
+    'Certification', 'CertificationRequirement', 'EquipmentType',
     'ServiceType', 'AssignmentStrategy', 'Flight',
     'Location', 'ServiceAssignment', 'Service',
     'Settings', 'Shift', 'Staff', 'TravelTime',
