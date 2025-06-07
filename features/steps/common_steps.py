@@ -215,7 +215,7 @@ def step_impl(context):
 
 @then('the assignments should be')
 def step_impl(context):
-    actual_assignments = context.scheduler.get_staff_assignments()
+    actual_assignments = context.scheduler.get_assignments()
     for row in context.table:
         staff_id = int(row['staff_id'])
         expected = ast.literal_eval(row['assigned_service_ids'])
