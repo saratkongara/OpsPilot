@@ -11,7 +11,7 @@ class ScheduleEntry(BaseModel):
     service_priority: int
     staff_id: int
     staff_name: str
-    location_id: int
+    location: str
 
     @property
     def start_min(self) -> int:
@@ -27,4 +27,4 @@ class ScheduleEntry(BaseModel):
             f"Id: {self.service_assignment_id}"
             f"[{self.start_time} - {self.end_time}] {self.service_name} "
             f"(Flight: {self.flight_number}) " if self.flight_number else f"[{self.start_time} - {self.end_time}] {self.service_name} "
-        ) + f"@ {self.location_id}, Staff: {self.staff_id} - {self.staff_name}, {priority_info}"
+        ) + f"@ {self.location}, Staff: {self.staff_id} - {self.staff_name}, {priority_info}"

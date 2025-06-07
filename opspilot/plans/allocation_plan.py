@@ -11,6 +11,7 @@ class AllocationPlan:
         service_map: Dict[int, 'Service'],
         staff_map: Dict[int, 'Staff'],
         flight_map: Dict[str, 'Flight'],
+        location_map: Dict[int, 'Location'],
     ):
         """
         Initialize the allocation plan.
@@ -21,6 +22,7 @@ class AllocationPlan:
         self.service_map = service_map
         self.staff_map = staff_map
         self.flight_map = flight_map
+        self.location_map = location_map
 
         # Build reverse mapping for flight-based lookups
         self._flight_to_assignments = self._build_flight_assignments_map()
@@ -120,6 +122,7 @@ class AllocationPlan:
         for sa_id, staff_ids in self.allocations.items():
             sa = self.service_assignment_map[sa_id]
             service = self.service_map[sa.service_id]
+            location = self.location_map[sa.location_id]
 
             if sa.flight_number:
                 flight = self.flight_map[sa.flight_number]
@@ -139,7 +142,7 @@ class AllocationPlan:
                     start_time=self._format_minutes_to_time_str(start_min),
                     end_time=self._format_minutes_to_time_str(end_min),
                     flight_number=sa.flight_number,
-                    location_id=sa.location_id,
+                    location=location.name,
                     flight_priority=int(sa.priority),
                     service_priority=int((sa.priority * 10) % 10) if sa.flight_number else int(sa.priority),
                 )
@@ -161,6 +164,7 @@ class AllocationPlan:
 
             flight = self.flight_map[sa.flight_number]
             service = self.service_map[sa.service_id]
+            location = self.location_map[sa.location_id]
             start_min, end_min = flight.get_service_time_minutes(sa.relative_start, sa.relative_end)
 
             for staff_id in staff_ids:
@@ -174,7 +178,7 @@ class AllocationPlan:
                     start_time=self._format_minutes_to_time_str(start_min),
                     end_time=self._format_minutes_to_time_str(end_min),
                     flight_number=sa.flight_number,
-                    location_id=sa.location_id,
+                    location=location.name,
                     flight_priority=int(sa.priority),
                     service_priority=int((sa.priority * 10) % 10),
                 )
@@ -195,6 +199,7 @@ class AllocationPlan:
                 continue
 
             service = self.service_map[sa.service_id]
+            location = self.location_map[sa.location_id]
             start_min = sa.start_time.hour * 60 + sa.start_time.minute
             end_min = sa.end_time.hour * 60 + sa.end_time.minute
 
@@ -209,7 +214,7 @@ class AllocationPlan:
                     start_time=self._format_minutes_to_time_str(start_min),
                     end_time=self._format_minutes_to_time_str(end_min),
                     flight_number=None,
-                    location_id=sa.location_id,
+                    location=location.name,
                     flight_priority=None,
                     service_priority=int(sa.priority),
                 )
