@@ -24,17 +24,23 @@ class ServiceAssignmentsBuilder:
                                 name=f'Location_{location_id_counter}')
 
             for task in fwt.tasks:
+                flight_task_priority_roles = task.priority_roles
+                priority_roles = [flight_task_priority_roles[k] for k in sorted(flight_task_priority_roles.keys())]
+                
                 service_assignment = ServiceAssignment(
                     id=service_id_counter,
                     service_id=task.GroundSupportEquipmentId,
-                    priority=1.0,
+                    priority=task.auto_allocation_priority,
                     staff_count=1,
                     location_id=location.id,
                     flight_number=flight_number,
-                    relative_start=task.start_sla,
-                    relative_end=task.end_sla,
-                    service_type=ServiceType.SINGLE,  # Default type, can be changed based on task
+                    relative_start=task.relative_start_sla,
+                    relative_end=task.relative_end_sla,
+                    service_type=ServiceType.SINGLE,
+                    priority_roles=priority_roles,
                 )
+                # Set the task's service assignment ID
+                task.service_assignment_id = service_assignment.id
 
                 service_assignments.append(service_assignment)
                 service_id_counter += 1
@@ -43,6 +49,8 @@ class ServiceAssignmentsBuilder:
                 location_id_counter += 1
 
         for common_task in self.common_tasks:
+            department_id = common_task.departmentId
+
             for task in common_task.tasks:
                 start_time = ParserUtil.extract_time(task.start_sla)
                 end_time = ParserUtil.extract_time(task.end_sla)
@@ -50,16 +58,23 @@ class ServiceAssignmentsBuilder:
                 location = Location(id=location_id_counter,
                                     name=f'Location_{location_id_counter}')
                 
+                common_task_priority_roles = task.priority_roles
+                priority_roles = [common_task_priority_roles[k] for k in sorted(common_task_priority_roles.keys())]
+                
                 service_assignment = ServiceAssignment(
                     id=service_id_counter,
                     service_id=task.logId,
-                    priority=1.0,
+                    department_id=department_id,
+                    priority=task.auto_allocation_priority,
                     staff_count=1,
                     location_id=location.id,
                     start_time=start_time,
                     end_time=end_time,
                     service_type=ServiceType.SINGLE,
+                    priority_roles=priority_roles,
                 )
+                # Set the task's service assignment ID
+                task.service_assignment_id = service_assignment.id
 
                 service_assignments.append(service_assignment)
                 service_id_counter += 1

@@ -5,9 +5,9 @@ Feature: Favor Staff with Fewer Certifications
 
   Scenario: Staff with fewer certifications assigned first
     Given the following staff exists:
-      | id | name  | certifications | eligible_for_services | shifts          |
-      | 1  | John  | [1, 3, 5]      | ['S']                 | ['08:00-16:00'] |
-      | 2  | Alice | [2, 4]         | ['S']                 | ['08:00-16:00'] |
+      | id | name  | department_id | certifications | eligible_for_services | shifts          |
+      | 1  | John  | 1             | [1, 3, 5]      | ['S']                 | ['08:00-16:00'] |
+      | 2  | Alice | 1             | [2, 4]         | ['S']                 | ['08:00-16:00'] |
     
     And the following services exist:
       | id | name    | certifications | requirement |
@@ -18,9 +18,9 @@ Feature: Favor Staff with Fewer Certifications
       | 1  | Terminal A |
 
     And the following service assignments exist:
-      | id | service_id | staff_count | location_id | start_time | end_time | service_type |
-      | 1  | 1          | 1           | 1           | 08:30      | 09:30    | S            |
-    
+      | id | service_id | department_id | staff_count | location_id | start_time | end_time | service_type |
+      | 1  | 1          | 1             | 1           | 1           | 08:30      | 09:30    | S            |
+
     And the following settings exist:
       | assignment_strategy |
       | Balance Workload    |
@@ -38,10 +38,10 @@ Feature: Favor Staff with Fewer Certifications
 
   Scenario: Staff with more certifications are only assigned if no one with fewer certifications is available
     Given the following staff exists:
-      | id | name  | certifications | eligible_for_services | shifts          |
-      | 1  | John  | [1]            | ['S']                 | ['10:00-16:00'] |
-      | 2  | Alice | [1, 2]         | ['S']                 | ['08:00-16:00'] |
-    
+      | id | name  | department_id | certifications | eligible_for_services | shifts          |
+      | 1  | John  | 1             | [1]            | ['S']                 | ['10:00-16:00'] |
+      | 2  | Alice | 1             | [1, 2]         | ['S']                 | ['08:00-16:00'] |
+
     And the following services exist:
       | id | name    | certifications | requirement |
       | 1  | Baggage | [1, 2]         | Any         |
@@ -51,9 +51,9 @@ Feature: Favor Staff with Fewer Certifications
       | 1  | Terminal A |
 
     And the following service assignments exist:
-      | id | service_id | staff_count | location_id | start_time | end_time | service_type |
-      | 1  | 1          | 1           | 1           | 08:30      | 09:30    | S            |
-    
+      | id | service_id | department_id | staff_count | location_id | start_time | end_time | service_type |
+      | 1  | 1          | 1             | 1           | 1           | 08:30      | 09:30    | S            |
+
     And the following settings exist:
       | assignment_strategy |
       | Balance Workload    |

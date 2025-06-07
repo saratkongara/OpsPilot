@@ -2,6 +2,7 @@
     {
       "id": 101,
       "name": "Alice",
+      "department_id": 1,
       "shifts": [{"start_time": "14:00", "end_time": "18:00"}],
       "certifications": [1],
       "eligible_for_services": ["S"],
@@ -11,6 +12,7 @@
     {
       "id": 102,
       "name": "Bob",
+      "department_id": 1,
       "shifts": [{"start_time": "14:00", "end_time": "18:00"}],
       "certifications": [2, 3],
       "eligible_for_services": ["S", "F"],
@@ -20,6 +22,7 @@
     {
       "id": 103,
       "name": "Charlie",
+      "department_id": 1,
       "shifts": [{"start_time": "15:00", "end_time": "19:00"}],
       "certifications": [4],
       "eligible_for_services": ["F"],

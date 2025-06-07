@@ -5,10 +5,10 @@ Feature: Staff Count Constraint
 
   Scenario: Only limited staff assigned even when multiple are eligible
     Given the following staff exists:
-      | id | name   | certifications | eligible_for_services | shifts          |
-      | 1  | Alice  | [1, 2]         | ['S']                 | ['08:00-16:00'] |
-      | 2  | Bob    | [1, 2]         | ['S']                 | ['08:00-16:00'] |
-      | 3  | Charlie| [1, 2]         | ['S']                 | ['08:00-16:00'] |
+      | id | name   | department_id | certifications | eligible_for_services | shifts          |
+      | 1  | Alice  | 1             | [1, 2]         | ['S']                 | ['08:00-16:00'] |
+      | 2  | Bob    | 1             | [1, 2]         | ['S']                 | ['08:00-16:00'] |
+      | 3  | Charlie| 1             | [1, 2]         | ['S']                 | ['08:00-16:00'] |
 
     And the following services exist:
       | id | name     | certifications | requirement |
@@ -19,8 +19,8 @@ Feature: Staff Count Constraint
       | 1  | Terminal A |
 
     And the following service assignments exist:
-      | id | service_id | location_id | staff_count | start_time | end_time | service_type |
-      | 1  | 1          | 1           | 2           | 08:30      | 09:30    | S            |
+      | id | service_id | department_id | location_id | staff_count | start_time | end_time | service_type |
+      | 1  | 1          | 1             | 1           | 2           | 08:30      | 09:30    | S            |
 
     When the scheduler runs
 
@@ -30,9 +30,9 @@ Feature: Staff Count Constraint
 
   Scenario: No staff assigned when staff_count is zero
     Given the following staff exists:
-      | id | name   | certifications | eligible_for_services | shifts          |
-      | 1  | Alice  | [1, 2]         | ['S']                 | ['08:00-16:00'] |
-      | 2  | Bob    | [1, 2]         | ['S']                 | ['08:00-16:00'] |
+      | id | name   | department_id | certifications | eligible_for_services | shifts          |
+      | 1  | Alice  | 1             | [1, 2]         | ['S']                 | ['08:00-16:00'] |
+      | 2  | Bob    | 1             | [1, 2]         | ['S']                 | ['08:00-16:00'] |
 
     And the following services exist:
       | id | name     | certifications | requirement |
@@ -43,8 +43,8 @@ Feature: Staff Count Constraint
       | 1  | Terminal A |
 
     And the following service assignments exist:
-      | id | service_id | location_id | staff_count | start_time | end_time | service_type |
-      | 1  | 1          | 1           | 0           | 08:30      | 09:30    | S            |
+      | id | service_id | department_id | location_id | staff_count | start_time | end_time | service_type |
+      | 1  | 1          | 1             | 1           | 0           | 08:30      | 09:30    | S            |
 
     When the scheduler runs
 
@@ -59,10 +59,10 @@ Feature: Staff Count Constraint
 
   Scenario: Service remains understaffed when not enough fully qualified staff are available
     Given the following staff exists:
-      | id | name  | certifications | eligible_for_services | shifts          |
-      | 1  | Alice | [1, 2]         | ['S']                 | ['08:00-16:00'] |
-      | 2  | Bob   | [2]            | ['S']                 | ['08:00-16:00'] |
-    
+      | id | name  | department_id | certifications | eligible_for_services | shifts          |
+      | 1  | Alice | 1             | [1, 2]         | ['S']                 | ['08:00-16:00'] |
+      | 2  | Bob   | 1             | [2]            | ['S']                 | ['08:00-16:00'] |
+
     And the following services exist:
       | id | name    | certifications | requirement |
       | 1  | Cleaning| [1, 2]         | All         |
@@ -72,9 +72,9 @@ Feature: Staff Count Constraint
       | 1  | Terminal A |
 
     And the following service assignments exist:
-      | id | service_id | location_id | staff_count | start_time | end_time | service_type |
-      | 1  | 1          | 1           | 2           | 08:30      | 09:30    | S            |
-    
+      | id | service_id | department_id | location_id | staff_count | start_time | end_time | service_type |
+      | 1  | 1          | 1             | 1           | 2           | 08:30      | 09:30    | S            |
+
     When the scheduler runs
     
     Then the assignments should be:

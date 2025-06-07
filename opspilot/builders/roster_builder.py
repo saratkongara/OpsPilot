@@ -9,9 +9,11 @@ class RosterBuilder:
         roster = []
 
         for resource in self.resources:
-            id = resource.employee_id
+            id = resource.resource_id
             name = resource.member_name
+            department_id = resource.department_id
             certifications = resource.qualification_certificates
+            role_code = resource.role_code
 
             start_time = ParserUtil.extract_time(resource.shift_start_time)
             end_time = ParserUtil.extract_time(resource.shift_end_time)
@@ -20,9 +22,11 @@ class RosterBuilder:
             staff = Staff(
                 id=id,
                 name=name,
+                department_id=department_id,
                 shifts=shifts,
                 certifications=certifications,
                 eligible_for_services=[ServiceType.SINGLE, ServiceType.FIXED, ServiceType.MULTI_TASK],
+                role_code=role_code,
             )
 
             roster.append(staff)

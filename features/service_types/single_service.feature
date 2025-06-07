@@ -5,8 +5,8 @@ Feature: Single Service Assignment with Priorities
 
   Scenario: Staff is eligible for multiple Single (S) services on a flight but only the highest priority is assigned
     Given the following staff exists:
-      | id | name  | certifications | eligible_for_services | shifts          |
-      | 1  | Alice | [1]            | ['S']                 | ['08:00-12:00'] |
+      | id | name  | department_id | certifications | eligible_for_services | shifts          |
+      | 1  | Alice | 1             | [1]            | ['S']                 | ['08:00-12:00'] |
 
     And the following services exist:
       | id | name       | certifications | requirement |
@@ -23,10 +23,10 @@ Feature: Single Service Assignment with Priorities
       | 1  | Bay 44 |
 
     And the following service assignments exist:
-      | id | service_id | staff_count |location_id | flight_number | relative_start | relative_end | service_type | priority |
-      | 1  | 1          | 1           | 1          | FL100         | A+10           | A+40         | S            | 7.2      |
-      | 2  | 2          | 1           | 1          | FL100         | A+20           | A+50         | S            | 7.1      |
-      | 3  | 3          | 1           | 1          | FL100         | A+30           | A+60         | S            | 7.3      |
+      | id | service_id | department_id | staff_count | location_id | flight_number | relative_start | relative_end | service_type | priority |
+      | 1  | 1          | 1             | 1           | 1           | FL100         | A+10           | A+40         | S            | 7.2      |
+      | 2  | 2          | 1             | 1           | 1           | FL100         | A+20           | A+50         | S            | 7.1      |
+      | 3  | 3          | 1             | 1           | 1           | FL100         | A+30           | A+60         | S            | 7.3      |
 
     When the scheduler runs
 

@@ -9,9 +9,9 @@ class ServicesBuilder:
 
         for service_data in self.services_list:
             service = Service(
-                id=service_data.logId,
-                name=service_data.equipmentType,
-                certifications=service_data.certificates,
+                id=service_data.get("logId"),
+                name=service_data.get("equipmentType"),
+                certifications=eval(service_data.get("certificates")),
                 certification_requirement=CertificationRequirement.ANY,
             )
             services.append(service)

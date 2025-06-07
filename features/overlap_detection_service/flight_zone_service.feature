@@ -7,9 +7,9 @@ Feature: FlightZone Service Assignment Overlap Detection
         | FL200  | 11:00        | 14:00          |
 
     And the following service assignments exist:
-        | id | service_id | staff_count | priority | flight_number | relative_start | relative_end | location_id |
-        | 1  | 101        | 2           | 1.0      | FL100         | A+10           | D-20         | 1           |
-        | 2  | 102        | 1           | 1.0      | FL200         | A              | A+30         | 2           |
+        | id | service_id | department_id | staff_count | priority | flight_number | relative_start | relative_end | location_id |
+        | 1  | 101        | 1             | 2           | 1.0      | FL100         | A+10           | D-20         | 1           |
+        | 2  | 102        | 1             | 1           | 1.0      | FL200         | A              | A+30         | 2           |
 
     And the following settings exist:
         | overlap_buffer_minutes | default_travel_time |
@@ -29,9 +29,9 @@ Feature: FlightZone Service Assignment Overlap Detection
         | FL200  | 10:40        | 12:00          |
 
     And the following service assignments exist:
-        | id | service_id | staff_count | priority | flight_number | relative_start | relative_end | location_id |
-        | 1  | 103        | 1           | 1.0      | FL100         | A+15           | D-5          | 1           |
-        | 2  | 104        | 1           | 1.0      | FL200         | A-10           | A+20         | 2           |
+        | id | service_id | department_id | staff_count | priority | flight_number | relative_start | relative_end | location_id |
+        | 1  | 103        | 1             | 1             | 1.0         | FL100    | A+15          | D-5            | 1           |
+        | 2  | 104        | 1             | 1             | 1.0         | FL200    | A-10          | A+20           | 2           |
 
     And the following settings exist:
         | overlap_buffer_minutes | default_travel_time |
@@ -51,9 +51,9 @@ Feature: FlightZone Service Assignment Overlap Detection
         | FL200  | 09:10        | 10:30          |
 
     And the following service assignments exist:
-        | id | service_id | staff_count | priority | flight_number | relative_start | relative_end | location_id |
-        | 1  | 105        | 1           | 1.0      | FL100         | A+15           | D-5          | 1           |
-        | 2  | 106        | 1           | 1.0      | FL200         | A-5            | A+15         | 2           |
+        | id | service_id | department_id | staff_count | priority | flight_number | relative_start | relative_end | location_id |
+        | 1  | 105        | 1             | 1           | 1.0      | FL100         | A+15           | D-5          | 1           |
+        | 2  | 106        | 1             | 1           | 1.0      | FL200         | A-5            | A+15         | 2           |
 
     And the following settings exist:
         | overlap_buffer_minutes | default_travel_time |
@@ -74,11 +74,11 @@ Feature: FlightZone Service Assignment Overlap Detection
         | FL300  | 09:20        | 11:15          |
 
     And the following service assignments exist:
-        | id | service_id | staff_count | priority | flight_number | relative_start | relative_end | location_id |
-        | 1  | 109        | 1           | 1.0      | FL100         | A+15           | D-5          | 1           |
-        | 2  | 110        | 1           | 1.0      | FL200         | A-10           | A+20         | 2           |
-        | 3  | 111        | 1           | 1.0      | FL300         | A-5            | A+15         | 3           |
-   
+        | id | service_id | department_id | staff_count | priority | flight_number | relative_start | relative_end | location_id |
+        | 1  | 109        | 1             | 1           | 1.0      | FL100         | A+15           | D-5          | 1           |
+        | 2  | 110        | 1             | 1           | 1.0      | FL200         | A-10           | A+20         | 2           |
+        | 3  | 111        | 1             | 1           | 1.0      | FL300         | A-5            | A+15         | 3           |
+
     And the following settings exist:
         | overlap_buffer_minutes | default_travel_time |
         | 5                      | 15                  |

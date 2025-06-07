@@ -35,6 +35,7 @@ def setup_staff(context, staff_table):
         staff = Staff(
             id=int(row['id']),
             name=row['name'],
+            department_id=int(row['department_id']),
             certifications=certifications,
             eligible_for_services=eligible_services,
             shifts=shifts,
@@ -101,6 +102,7 @@ def setup_service_assignments(context, assignments_table):
             ServiceAssignment(
                 id=int(row['id']),
                 service_id=int(row['service_id']),
+                department_id=int(row['department_id']),
                 staff_count=int(row['staff_count']),
                 priority=float(row.get('priority', 1.0)),
                 location_id=int(row.get('location_id')) if row.get('location_id') else None,

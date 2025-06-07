@@ -1,5 +1,4 @@
 from opspilot.models import Flight
-from datetime import datetime
 from .parser_util import ParserUtil
 
 class FlightsBuilder:

@@ -5,9 +5,9 @@ Feature: Multi Staff Assignment
 
   Scenario: Assign staff when enough qualified staff are available
     Given the following staff exists:
-      | id | name   | certifications | eligible_for_services | shifts            | priority_service_id | rank_level |
-      | 1  | John   | [1, 2]         | ['S', 'M']            | ['08:00-16:00']   | 1                   | 1          |
-      | 2  | Sarah  | [2, 3]         | ['S', 'F']            | ['12:00-20:00']   | 2                   | 2          |
+      | id | name   | department_id | certifications | eligible_for_services | shifts            | priority_service_id | rank_level |
+      | 1  | John   | 1             | [1, 2]         | ['S', 'M']            | ['08:00-16:00']   | 1                   | 1          |
+      | 2  | Sarah  | 1             | [2, 3]         | ['S', 'F']            | ['12:00-20:00']   | 2                   | 2          |
     
     And the following services exist:
       | id | name          | certifications | requirement |
@@ -23,9 +23,9 @@ Feature: Multi Staff Assignment
       | 1  | Bay 44 |
 
     And the following service assignments exist:
-      | id | service_id | staff_count | priority | location_id | flight_number | relative_start | relative_end | service_type |
-      | 1  | 1          | 1           | 1.1      | 1           | AA123         | A+30           | D-45         | S            |
-      | 2  | 2          | 1           | 1.2      | 1           | AA123         | A+45           | D-30         | S            | 
+      | id | service_id | department_id | staff_count | priority | location_id | flight_number | relative_start | relative_end | service_type |
+      | 1  | 1          | 1             | 1           | 1.1      | 1           | AA123         | A+30           | D-45         | S            |
+      | 2  | 2          | 1             | 1           | 1.2      | 1           | AA123         | A+45           | D-30         | S            | 
     
     When the scheduler runs
 

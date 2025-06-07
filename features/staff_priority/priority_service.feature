@@ -5,9 +5,9 @@ Feature: Staff Priority Service ID Based Assignment
 
   Scenario: Staff with higher priority_service_id is assigned first
     Given the following staff exists:
-      | id | name  | certifications | eligible_for_services | shifts          | priority_service_id |
-      | 1  | John  | [1, 2]         | ['S']                 | ['08:00-16:00'] | 2                   |
-      | 2  | Alice | [1, 2, 3]      | ['S']                 | ['08:00-16:00'] | 1                   |
+      | id | name  | department_id | certifications | eligible_for_services | shifts          | priority_service_id |
+      | 1  | John  | 1             | [1, 2]         | ['S']                 | ['08:00-16:00'] | 2                   |
+      | 2  | Alice | 1             | [1, 2, 3]      | ['S']                 | ['08:00-16:00'] | 1                   |
     
     And the following services exist:
       | id | name     | certifications | requirement |
@@ -18,9 +18,9 @@ Feature: Staff Priority Service ID Based Assignment
       | 1  | Terminal A |
 
     And the following service assignments exist:
-      | id | service_id | staff_count | location_id | start_time | end_time | service_type |
-      | 1  | 1          | 1           | 1           | 08:30      | 09:30    | S            |
-    
+      | id | service_id | department_id | staff_count | location_id | start_time | end_time | service_type |
+      | 1  | 1          | 1             | 1           | 1           | 08:30      | 09:30    | S            |
+
     And the following settings exist:
       | assignment_strategy |
       | Balance Workload    |
@@ -38,10 +38,10 @@ Feature: Staff Priority Service ID Based Assignment
 
   Scenario: Staff with lower priority_service_id not assigned first
     Given the following staff exists:
-      | id | name  | certifications | eligible_for_services | shifts          | priority_service_id |
-      | 1  | John  | [1, 2]         | ['S']                 | ['08:00-16:00'] | 2                   |
-      | 2  | Alice | [1, 2]         | ['S']                 | ['08:00-16:00'] | 1                   |
-    
+      | id | name  | department_id | certifications | eligible_for_services | shifts          | priority_service_id |
+      | 1  | John  | 1             | [1, 2]         | ['S']                 | ['08:00-16:00'] | 2                   |
+      | 2  | Alice | 1             | [1, 2]         | ['S']                 | ['08:00-16:00'] | 1                   |
+
     And the following services exist:
       | id | name     | certifications | requirement |
       | 1  | Refueling| [2]            | Any         |
@@ -51,9 +51,9 @@ Feature: Staff Priority Service ID Based Assignment
       | 1  | Terminal A |
 
     And the following service assignments exist:
-      | id | service_id | staff_count | location_id | start_time | end_time | service_type |
-      | 1  | 1          | 1           | 1           | 08:30      | 09:30    | S            |
-    
+      | id | service_id | department_id | staff_count | location_id | start_time | end_time | service_type |
+      | 1  | 1          | 1             | 1           | 1           | 08:30      | 09:30    | S            |
+
     And the following settings exist:
       | assignment_strategy |
       | Balance Workload    |

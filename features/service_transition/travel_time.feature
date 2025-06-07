@@ -5,8 +5,8 @@ Feature: Service Transition Constraints
 
   Scenario: Staff can be assigned to two non-overlapping services
     Given the following staff exists:
-      | id | name  | certifications | eligible_for_services | shifts          |
-      | 1  | Alice | [1]            | ['S']                 | ['08:00-16:00'] |
+      | id | name  | department_id | certifications | eligible_for_services | shifts          |
+      | 1  | Alice | 1             | [1]            | ['S']                 | ['08:00-16:00'] |
 
     And the following services exist:
       | id | name       | certifications | requirement |
@@ -23,9 +23,9 @@ Feature: Service Transition Constraints
       | 2  | Bay B  |
 
     And the following service assignments exist:
-      | id | service_id | staff_count | location_id | flight_number | relative_start | relative_end | service_type |
-      | 1  | 1          | 1           | 1           | FL101         | A+10           | D            | S            |
-      | 2  | 1          | 1           | 2           | FL102         | A+10           | A+30         | S            |
+      | id | service_id | department_id | staff_count | location_id | flight_number | relative_start | relative_end | service_type |
+      | 1  | 1          | 1             | 1           | 1           | FL101         | A+10           | D            | S            |
+      | 2  | 1          | 1             | 1           | 2           | FL102         | A+10           | A+30         | S            |
 
     And the following travel times exist:
       | origin_location_id | destination_location_id | travel_minutes |
@@ -48,8 +48,8 @@ Feature: Service Transition Constraints
 
   Scenario: Staff cannot be assigned to two overlapping services
     Given the following staff exists:
-      | id | name  | certifications | eligible_for_services | shifts          |
-      | 1  | Alice | [1]            | ['S']                 | ['08:00-16:00'] |
+      | id | name  | department_id | certifications | eligible_for_services | shifts          |
+      | 1  | Alice | 1             | [1]            | ['S']                 | ['08:00-16:00'] |
 
     And the following services exist:
       | id | name       | certifications | requirement |
@@ -71,9 +71,9 @@ Feature: Service Transition Constraints
       | 2                  | 1                       | 30             |
 
     And the following service assignments exist:
-      | id | service_id | staff_count | location_id | priority | flight_number | relative_start | relative_end | service_type |
-      | 1  | 1          | 1           | 1           | 1.0      | FL201         | A+10           | D-10         | S            |
-      | 2  | 1          | 1           | 2           | 2.0      | FL202         | A+10           | A+40         | S            |
+      | id | service_id | department_id | staff_count | location_id | priority | flight_number | relative_start | relative_end | service_type |
+      | 1  | 1          | 1             | 1           | 1           | 1.0      | FL201         | A+10           | D-10         | S            |
+      | 2  | 1          | 1             | 1           | 2           | 2.0      | FL202         | A+10           | A+40         | S            |
 
     And the following settings exist:
       | overlap_buffer_minutes | default_travel_time |
@@ -93,8 +93,8 @@ Feature: Service Transition Constraints
 
   Scenario: Assignments exactly respect travel buffer and are both allowed
     Given the following staff exists:
-      | id | name  | certifications | eligible_for_services | shifts          |
-      | 1  | Alice | [1]            | ['F']                 | ['08:00-16:00'] |
+      | id | name  | department_id | certifications | eligible_for_services | shifts          |
+      | 1  | Alice | 1             | [1]            | ['F']                 | ['08:00-16:00'] |
 
     And the following services exist:
       | id | name       | certifications | requirement |
@@ -116,9 +116,9 @@ Feature: Service Transition Constraints
       | 2                  | 1                       | 25             |
 
     And the following service assignments exist:
-      | id | service_id | staff_count | location_id | flight_number | relative_start | relative_end | service_type |
-      | 1  | 1          | 1           | 1           | FL301         | A+10           | A+40         | F            |
-      | 2  | 1          | 1           | 2           | FL302         | A              | A+40         | F            |
+      | id | service_id | department_id | staff_count | location_id | flight_number | relative_start | relative_end | service_type |
+      | 1  | 1          | 1             | 1           | 1           | FL301         | A+10           | A+40         | F            |
+      | 2  | 1          | 1             | 1           | 2           | FL302         | A              | A+40         | F            |
 
     And the following settings exist:
       | overlap_buffer_minutes | default_travel_time |

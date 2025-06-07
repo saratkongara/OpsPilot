@@ -5,10 +5,10 @@ Feature: Staff Eligibility Constraint
 
   Scenario: Only eligible staff are assigned to service types
     Given the following staff exists:
-      | id | name    | certifications | eligible_for_services | shifts          |
-      | 1  | Alice   | [1]            | ['S']                 | ['08:00-12:00'] |
-      | 2  | Bob     | [1]            | ['F']                 | ['08:00-12:00'] |
-      | 3  | Charlie | [1]            | ['M']                 | ['08:00-12:00'] |
+      | id | name    | department_id | certifications | eligible_for_services | shifts          |
+      | 1  | Alice   | 1             | [1]            | ['S']                 | ['08:00-12:00'] |
+      | 2  | Bob     | 1             | [1]            | ['F']                 | ['08:00-12:00'] |
+      | 3  | Charlie | 1             | [1]            | ['M']                 | ['08:00-12:00'] |
 
     And the following services exist:
       | id | name     | certifications | requirement |
@@ -19,9 +19,9 @@ Feature: Staff Eligibility Constraint
       | 1  | Terminal A |
 
     And the following service assignments exist:
-      | id | service_id | location_id | staff_count | start_time | end_time | service_type |
-      | 1  | 1          | 1           | 1           | 08:30      | 09:30    | S            |
-      | 2  | 1          | 1           | 1           | 09:45      | 10:30    | F            |   
+      | id | service_id | department_id | location_id | staff_count | start_time | end_time | service_type |
+      | 1  | 1          | 1             | 1           | 1           | 08:30      | 09:30    | S            |
+      | 2  | 1          | 1             | 1           | 1           | 09:45      | 10:30    | F            |   
 
     When the scheduler runs
 
@@ -39,10 +39,10 @@ Feature: Staff Eligibility Constraint
 
   Scenario: No staff assigned when none are eligible for the service type
     Given the following staff exists:
-      | id | name    | certifications | eligible_for_services | shifts          |
-      | 1  | Alice   | [1]            | ['F']                 | ['08:00-12:00'] |
-      | 2  | Bob     | [1]            | ['M']                 | ['08:00-12:00'] |
-      | 3  | Charlie | [1]            | ['F', 'M']            | ['08:00-12:00'] |
+      | id | name    | department_id | certifications | eligible_for_services | shifts          |
+      | 1  | Alice   | 1             | [1]            | ['F']                 | ['08:00-12:00'] |
+      | 2  | Bob     | 1             | [2]            | ['M']                 | ['08:00-12:00'] |
+      | 3  | Charlie | 1             | [1, 2]         | ['F', 'M']            | ['08:00-12:00'] |
 
     And the following services exist:
       | id | name     | certifications | requirement |
@@ -53,8 +53,8 @@ Feature: Staff Eligibility Constraint
       | 1  | Bay 10 |
 
     And the following service assignments exist:
-      | id | service_id | location_id | staff_count | start_time | end_time | service_type |
-      | 1  | 1          | 1           | 1           | 08:30      | 09:30    | S            |
+      | id | service_id | department_id | location_id | staff_count | start_time | end_time | service_type |
+      | 1  | 1          | 1             | 1           | 1           | 08:30      | 09:30    | S            |
 
     When the scheduler runs
 
