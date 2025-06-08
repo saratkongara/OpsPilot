@@ -18,7 +18,7 @@ class FixedServiceConstraint(Constraint):
 
         2. Across all zones (FlightZone + CommonZone):
         - A staff member can be assigned to only one specific Fixed service_id for the entire day (repeated at different times is okay).
-        - If assigned to any Fixed (F) service, staff cannot be assigned to any non-Fixed (S/C/M) service for the whole day.
+        - If assigned to any Fixed (F) service, staff cannot be assigned to any non-Fixed service for the whole day.
         """
 
         start_time = time()

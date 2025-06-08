@@ -6,6 +6,11 @@ Feature: FlightZone Service Assignment Overlap Detection
         | FL100  | 09:00        | 11:00          |
         | FL200  | 11:00        | 14:00          |
 
+    And the following locations exist:
+        | id | name       |
+        | 1  | Terminal A |
+        | 2  | Terminal B |
+
     And the following service assignments exist:
         | id | service_id | department_id | staff_count | priority | flight_number | relative_start | relative_end | location_id |
         | 1  | 101        | 1             | 2           | 1.0      | FL100         | A+10           | D-20         | 1           |
@@ -27,6 +32,11 @@ Feature: FlightZone Service Assignment Overlap Detection
         | number | arrival_time | departure_time |
         | FL100  | 09:00        | 10:30          |
         | FL200  | 10:40        | 12:00          |
+
+    And the following locations exist:
+        | id | name       |
+        | 1  | Terminal A |
+        | 2  | Terminal B |
 
     And the following service assignments exist:
         | id | service_id | department_id | staff_count | priority | flight_number | relative_start | relative_end | location_id |
@@ -50,6 +60,11 @@ Feature: FlightZone Service Assignment Overlap Detection
         | FL100  | 08:00        | 09:00          |
         | FL200  | 09:10        | 10:30          |
 
+    And the following locations exist:
+        | id | name       |
+        | 1  | Terminal A |
+        | 2  | Terminal B |
+
     And the following service assignments exist:
         | id | service_id | department_id | staff_count | priority | flight_number | relative_start | relative_end | location_id |
         | 1  | 105        | 1             | 1           | 1.0      | FL100         | A+15           | D-5          | 1           |
@@ -72,6 +87,12 @@ Feature: FlightZone Service Assignment Overlap Detection
         | FL100  | 08:00        | 09:30          |
         | FL200  | 09:35        | 11:00          |
         | FL300  | 09:20        | 11:15          |
+
+    And the following locations exist:
+        | id | name       |
+        | 1  | Terminal A |
+        | 2  | Terminal B |
+        | 3  | Terminal C |
 
     And the following service assignments exist:
         | id | service_id | department_id | staff_count | priority | flight_number | relative_start | relative_end | location_id |

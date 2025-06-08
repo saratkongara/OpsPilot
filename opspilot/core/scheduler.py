@@ -20,6 +20,7 @@ class Scheduler:
         services: List[Service],
         flights: List[Flight],
         service_assignments: List[ServiceAssignment],
+        locations: List[Location],
         settings: Settings,
         travel_times: Optional[List[TravelTime]] = [],
         hints: Optional[AllocationPlan] = None
@@ -53,12 +54,14 @@ class Scheduler:
         self.service_assignment_map = {service_assignment.id: service_assignment for service_assignment in service_assignments}
         self.service_map = {service.id: service for service in services}
         self.flight_map = {flight.number: flight for flight in flights}
+        self.location_map = {location.id: location for location in locations}
         self.travel_time_map = {(travel_time.origin_location_id, travel_time.destination_location_id): travel_time.travel_minutes for travel_time in travel_times}
         
         # Initialize overlap detector
         overlap_detector = OverlapDetectionService(
             service_assignments=self.service_assignments,
             flight_map=self.flight_map,
+            location_map=self.location_map,
             travel_time_map=self.travel_time_map,
             settings=self.settings
         )

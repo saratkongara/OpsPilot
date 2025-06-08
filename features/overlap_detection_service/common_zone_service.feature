@@ -6,6 +6,11 @@ Feature: CommonZone Service Assignment Overlap Detection
         | 1  | 301        | 1             | 1           | 1.0      | 08:00      | 09:00    | 1           |
         | 2  | 302        | 1             | 1           | 1.0      | 09:15      | 10:00    | 2           |
 
+    And the following locations exist:
+        | id | name       |
+        | 1  | Terminal A |
+        | 2  | Terminal B |
+
     And the following travel times exist:
         | origin_location_id | destination_location_id | travel_minutes |
         | 1                  | 2                       | 15             |
@@ -26,6 +31,11 @@ Feature: CommonZone Service Assignment Overlap Detection
         | id | service_id | department_id | staff_count | priority | start_time | end_time | location_id |
         | 1  | 305        | 1             | 1           | 1.0      | 08:00      | 09:00    | 1           |
         | 2  | 306        | 1             | 1           | 1.0      | 09:10      | 10:00    | 2           |
+
+    And the following locations exist:
+        | id | name       |
+        | 1  | Terminal A |
+        | 2  | Terminal B |
 
     And the following travel times exist:
         | origin_location_id | destination_location_id | travel_minutes |
@@ -48,6 +58,11 @@ Feature: CommonZone Service Assignment Overlap Detection
         | 1  | 303        | 1             | 2           | 1.0      | 08:00      | 09:00    | 1           |
         | 2  | 304        | 1             | 1           | 1.0      | 09:05      | 10:00    | 2           |
 
+    And the following locations exist:
+        | id | name       |
+        | 1  | Terminal A |
+        | 2  | Terminal B |
+
     And the following travel times exist:
         | origin_location_id | destination_location_id | travel_minutes |
         | 1                  | 2                       | 15             |
@@ -69,6 +84,12 @@ Feature: CommonZone Service Assignment Overlap Detection
         | 1  | 307        | 1             | 1           | 1.0      | 08:00      | 09:00    | 1           |
         | 2  | 308        | 1             | 1           | 1.0      | 09:00      | 09:30    | 2           |
         | 3  | 309        | 1             | 1           | 1.0      | 09:30      | 10:15    | 3           |
+
+    And the following locations exist:
+        | id | name       |
+        | 1  | Terminal A |
+        | 2  | Terminal B |
+        | 3  | Terminal C |
 
     And the following travel times exist:
         | origin_location_id | destination_location_id | travel_minutes |

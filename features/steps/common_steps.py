@@ -139,6 +139,11 @@ def setup_flight_map(context):
     for flight in context.flights:
         context.flight_map[flight.number] = flight
 
+def setup_location_map(context):
+    context.location_map = {}
+    for location in context.locations:
+        context.location_map[location.id] = location
+
 def setup_travel_time_map(context):
     context.travel_time_map = {}
     for travel_time in context.travel_times:
@@ -175,11 +180,13 @@ def step_impl(context):
 @when('the overlap detection service runs')
 def step_impl(context):
     setup_flight_map(context)
+    setup_location_map(context)
     setup_travel_time_map(context)
 
     overlap_service = OverlapDetectionService(
         service_assignments=context.service_assignments,
         flight_map=context.flight_map,
+        location_map=context.location_map,
         travel_time_map=context.travel_time_map,
         settings=context.settings
     )
@@ -203,6 +210,7 @@ def step_impl(context):
         services=context.services,
         flights=context.flights,
         service_assignments=context.service_assignments,
+        locations=context.locations,
         travel_times=context.travel_times,
         settings=context.settings
     )

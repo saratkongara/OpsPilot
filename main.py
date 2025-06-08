@@ -69,6 +69,7 @@ def run():
         services=services,
         flights=flights,
         service_assignments=service_assignments,
+        locations=locations,
         settings=settings,
         travel_times=travel_times
     )
