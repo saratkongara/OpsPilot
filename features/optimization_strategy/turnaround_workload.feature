@@ -101,3 +101,42 @@ Feature: Multi Department Staff Assignment
       | 4                     | 1                    |
       | 5                     | 1                    |
       | 6                     | 1                    |
+
+  Scenario: Staff prioritized for assignments in their own department
+    Given the following staff exists:
+      | id | name    | department_id | certifications | eligible_for_services | shifts          |
+      | 1  | StaffA1 | 1             | [1]            | ['S']                 | ['08:00-12:00'] |
+      | 2  | StaffB1 | 2             | [1]            | ['S']                 | ['08:00-12:00'] |
+      | 3  | StaffA2 | 1             | [2]            | ['S']                 | ['09:00-13:00'] |
+      | 4  | StaffB2 | 2             | [2]            | ['S']                 | ['09:00-13:00'] |
+
+    And the following services exist:
+      | id | name      | certifications | requirement |
+      | 1  | ServiceX  | [1]            | Any         |
+      | 2  | ServiceY  | [2]            | Any         |
+
+    And the following locations exist:
+      | id | name       |
+      | 1  | Location Alpha |
+      | 2  | Location Beta  |
+
+    And the following service assignments exist:
+      | id | service_id | department_id | staff_count | location_id | start_time | end_time | service_type |
+      | 1  | 1          | 1             | 1           | 1           | 09:00      | 10:00    | S            |
+      | 2  | 2          | 2             | 1           | 2           | 10:00      | 11:00    | S            |
+
+    And the following settings exist:
+      | assignment_strategy |
+      | Turnaround Workload |
+
+    When the scheduler runs
+    
+    Then the assignments should be:
+      | staff_id | assigned_service_ids |
+      | 1        | [1]                  |
+      | 4        | [2]                  |
+
+    And the service coverage should be:
+      | service_assignment_id | assigned_staff_count |
+      | 1                     | 1                    |
+      | 2                     | 1                    |
